@@ -1,6 +1,5 @@
 # laser_assistant.py
 """A tool to generate joints for laser cutting"""
-# Generator for laser cut joints
 
 import xml.etree.ElementTree as ET
 import argparse
@@ -69,7 +68,7 @@ def generate_edge(line, inside, thickness, segments):
 
     # TODO: break these segment generators down into subfunctions
     for i in range(segments):
-        new_segment = ET.Element('{http://www.w3.org/2000/svg}line', segment_attrib)
+        new_segment = ET.Element('line', segment_attrib)
         if segment_inside:
             new_segment.attrib['x1'] = f"{leftx:.5f}"
             new_segment.attrib['y1'] = f"{segment_y:.5f}"
@@ -78,7 +77,7 @@ def generate_edge(line, inside, thickness, segments):
             new_segment.attrib['y2'] = f"{segment_y:.5f}"
             edge.append(new_segment)
             if i+1 != segments:
-                new_segment = ET.Element('{http://www.w3.org/2000/svg}line', segment_attrib)
+                new_segment = ET.Element('line', segment_attrib)
                 new_segment.attrib['x1'] = f"{leftx:.5f}"
                 new_segment.attrib['y1'] = f"{segment_y:.5f}"
                 new_segment.attrib['x2'] = f"{rightx:.5f}"
@@ -92,7 +91,7 @@ def generate_edge(line, inside, thickness, segments):
             new_segment.attrib['y2'] = f"{segment_y:.5f}"
             edge.append(new_segment)
             if i+1 != segments:
-                new_segment = ET.Element('{http://www.w3.org/2000/svg}line', segment_attrib)
+                new_segment = ET.Element('line', segment_attrib)
                 new_segment.attrib['x1'] = f"{rightx:.5f}"
                 new_segment.attrib['y1'] = f"{segment_y:.5f}"
                 new_segment.attrib['x2'] = f"{leftx:.5f}"
@@ -112,18 +111,19 @@ def parse_svg(filename):
     # dictionaries for Joints and Shapes
     joints = {}
     shapes = {}
+    
     # viewbox / artboard attributes
     viewbox = root.attrib
 
-    for layer in tree.findall('{http://www.w3.org/2000/svg}g'):
+    for layer in tree.findall('svg:g',NS):
         layer_name = layer.attrib['id']
         if layer_name.find("Joint") == 0:
             joints[layer_name] = []
-            for line in layer.findall('{http://www.w3.org/2000/svg}line'):
+            for line in layer.findall('svg:line',NS):
                 joints[layer_name].append(line)
         if layer_name.find("Shape") == 0:
             shapes[layer_name] = []
-            for line in layer.findall('{http://www.w3.org/2000/svg}line'):
+            for line in layer.findall('svg:line',NS):
                 shapes[layer_name].append(line)
     return(joints, shapes, viewbox)
 
@@ -135,7 +135,7 @@ def process_joints(joints, shapes, viewbox, thickness, segments):
     new_tree = ET.ElementTree(new_root)
 
     # make an output layer
-    output = ET.SubElement(new_root, '{http://www.w3.org/2000/svg}g')
+    output = ET.SubElement(new_root, 'g')
     output.attrib['id'] = "Output"
 
     for index in shapes:
