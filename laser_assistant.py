@@ -111,19 +111,19 @@ def parse_svg(filename):
     # dictionaries for Joints and Shapes
     joints = {}
     shapes = {}
-    
+
     # viewbox / artboard attributes
     viewbox = root.attrib
 
-    for layer in tree.findall('svg:g',NS):
+    for layer in tree.findall('svg:g', NS):
         layer_name = layer.attrib['id']
         if layer_name.find("Joint") == 0:
             joints[layer_name] = []
-            for line in layer.findall('svg:line',NS):
+            for line in layer.findall('svg:line', NS):
                 joints[layer_name].append(line)
         if layer_name.find("Shape") == 0:
             shapes[layer_name] = []
-            for line in layer.findall('svg:line',NS):
+            for line in layer.findall('svg:line', NS):
                 shapes[layer_name].append(line)
     return(joints, shapes, viewbox)
 
