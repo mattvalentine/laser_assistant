@@ -23,16 +23,27 @@ def run_parser():
         filename = args.filename
     else:
         filename = 'input-samples/test1.svg'
+    if not os.path.exists(filename):
+        print(f"File not found: {filename}")
+        exit()
+
 
     if args.thickness:
         thickness = float(args.thickness)
     else:
         thickness = 10
+    if thickness <= 0:
+        print(f"Invalid thickness: {thickness}")
+        exit()
 
     if args.segments:
         segments = int(args.segments)
     else:
         segments = 5
+    if segments < 3:
+        print(f"Invalid segment quantity (Must be at least 3 segments): {segments}")
+        exit()
+
     return(filename, thickness, segments)
 
 # TODO: parse more arguements:
@@ -131,7 +142,8 @@ def process_joints(joints, shapes, viewbox, thickness, segments):
     """Iterate through joints and modify shapes."""
 
     # create basic structure of output SVG
-    new_root = ET.Element('{http://www.w3.org/2000/svg}svg', viewbox)
+    new_root = ET.Element('svg', viewbox)
+    new_root.attrib["xmlns"] = "http://www.w3.org/2000/svg"
     new_tree = ET.ElementTree(new_root)
 
     # make an output layer
@@ -156,5 +168,5 @@ if __name__ == "__main__":
     (JOINTS, SHAPES, VIEWBOX) = parse_svg(FILENAME)
     OUTPUT_SVG = process_joints(JOINTS, SHAPES, VIEWBOX, THICKNESS, SEGMENTS)
     OUTPUT_SVG.write('output.svg')
-    os.system("open output.svg")
+    # os.system("open output.svg")
     
