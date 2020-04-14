@@ -29,7 +29,7 @@ def make_box_joint_a(length, segments, thickness):
     root = joint.getroot()
 
     # starting at the top
-    last_point = [0, 0]
+    last_point = [0, -thickness]
 
     for seg in range(segments):
         # make a segment
@@ -57,7 +57,7 @@ def make_box_joint_b(length, segments, thickness):
     root = joint.getroot()
 
     # starts at the bottom instead of at the edge
-    last_point = [0, thickness]
+    last_point = [0, 0]
 
     for seg in range(segments):
         # make a segment
@@ -69,9 +69,9 @@ def make_box_joint_b(length, segments, thickness):
         last_point = next_point
         if seg+1 < segments:
             if seg%2 == 1:
-                next_point = [last_point[0], last_point[1] + thickness]
-            else:
                 next_point = [last_point[0], last_point[1] - thickness]
+            else:
+                next_point = [last_point[0], last_point[1] + thickness]
             new_segment = make_segment(last_point, next_point)
             root.append(new_segment)
             last_point = next_point

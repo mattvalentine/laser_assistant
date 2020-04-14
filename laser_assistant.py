@@ -28,7 +28,7 @@ def run_parser():
     if args.filename:
         filename = args.filename
     else:
-        filename = 'input-samples/test1.svg'
+        filename = 'input-samples/test1-01.svg'
     if not os.path.exists(filename):
         print(f"File not found: {filename}")
         exit()
@@ -77,7 +77,7 @@ def generate_edge(line, thickness, segments, joint_a):
     point1, point2 = points_from_line(line)
     length = get_length(point1, point2)
     angle = get_rotation_angle(point1, point2)
-    print(length)
+
     if joint_a:
         edge = make_box_joint_a(length, segments, thickness)
     else:
