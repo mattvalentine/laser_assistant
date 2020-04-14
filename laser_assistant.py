@@ -4,6 +4,12 @@
 import xml.etree.ElementTree as ET
 import argparse
 import os
+import numpy as np
+
+
+
+from box_joint_generator import make_box_joint_a, make_box_joint_b
+# from edge_transformer import get_length, get_rotation_angle
 
 # Namespace for svg formatting
 NS = {'svg': 'http://www.w3.org/2000/svg'}
@@ -46,71 +52,45 @@ def run_parser():
 
     return(filename, thickness, segments)
 
-# TODO: parse more arguements:
-# input file
-# material thickness
-# joint type
-# joint parameters: different for different joint types...
-# for box joint: number of segments
-# output name?
+def get_length(point1, point2):
+    """calculates the length of a segment √x²+y²"""
+    length = ((point2[0] - point1[0])**2 + (point2[1] - point1[1])**2)**0.5
+    return length
 
-# TODO: make function - get line equation
-# TODO: make function - get line range
-# TODO: make line overlap function
+def get_rotation_angle(point1, point2):
+    """returns the clockwise angle between a vector defined by 2 points and the x axis"""
+    # translating into complex vector = x + yj (j is the complex number)
+    vector = point2[0] - point1[0] + (point2[1] - point1[1])*1j
 
-# TODO: make joint generator more generalized
+    angle = np.angle(vector, deg=True)
 
-def generate_edge(line, inside, thickness, segments):
-    """Take an edge from a joint (line+direction) as input and generate line segments for output."""
-    # for the moment this is hard coded to left and right as 1 and 2
-    edge = []
-    # temporary hard coded vertical joint only
-    length = abs(float(line.attrib['y1']) - float(line.attrib['y2']))
-    segment_length = length / segments
-    rightx = float(line.attrib['x1'])
-    leftx = float(line.attrib['x1']) - thickness
+    return angle
 
-    segment_attrib = line.attrib
+def points_from_line(line):
+    """generates points from line"""
+    point1 = [float(line.attrib["x1"]), float(line.attrib["y1"])]
+    point2 = [float(line.attrib["x2"]), float(line.attrib["y2"])]
+    return(point1, point2)
 
-    top_y = max(float(line.attrib['y1']), float(line.attrib['y2']))
+def generate_edge(line, thickness, segments, joint_a):
+    """generates the joint edges"""
+    point1, point2 = points_from_line(line)
+    length = get_length(point1, point2)
+    angle = get_rotation_angle(point1, point2)
+    print(length)
+    if joint_a:
+        edge = make_box_joint_a(length, segments, thickness)
+    else:
+        edge = make_box_joint_b(length, segments, thickness)
 
-    segment_inside = inside
-    segment_y = top_y
-
-    # TODO: break these segment generators down into subfunctions
-    for i in range(segments):
-        new_segment = ET.Element('line', segment_attrib)
-        if segment_inside:
-            new_segment.attrib['x1'] = f"{leftx:.5f}"
-            new_segment.attrib['y1'] = f"{segment_y:.5f}"
-            new_segment.attrib['x2'] = f"{leftx:.5f}"
-            segment_y = segment_y - segment_length
-            new_segment.attrib['y2'] = f"{segment_y:.5f}"
-            edge.append(new_segment)
-            if i+1 != segments:
-                new_segment = ET.Element('line', segment_attrib)
-                new_segment.attrib['x1'] = f"{leftx:.5f}"
-                new_segment.attrib['y1'] = f"{segment_y:.5f}"
-                new_segment.attrib['x2'] = f"{rightx:.5f}"
-                new_segment.attrib['y2'] = f"{segment_y:.5f}"
-                edge.append(new_segment)
-        else:
-            new_segment.attrib['x1'] = f"{rightx:.5f}"
-            new_segment.attrib['y1'] = f"{segment_y:.5f}"
-            new_segment.attrib['x2'] = f"{rightx:.5f}"
-            segment_y = segment_y - segment_length
-            new_segment.attrib['y2'] = f"{segment_y:.5f}"
-            edge.append(new_segment)
-            if i+1 != segments:
-                new_segment = ET.Element('line', segment_attrib)
-                new_segment.attrib['x1'] = f"{rightx:.5f}"
-                new_segment.attrib['y1'] = f"{segment_y:.5f}"
-                new_segment.attrib['x2'] = f"{leftx:.5f}"
-                new_segment.attrib['y2'] = f"{segment_y:.5f}"
-                edge.append(new_segment)
-        segment_inside = not segment_inside
+    for seg in edge.findall('line'):
+        rotate = f"rotate({angle},{point1[0]},{point1[1]})"
+        translate = f"translate({point1[0]},{point1[1]})"
+        seg.attrib["transform"] = rotate + " " + translate
+        seg.set('updated', 'yes')
 
     return edge
+
 
 
 def parse_svg(filename):
@@ -156,11 +136,13 @@ def process_joints(joints, shapes, viewbox, thickness, segments):
             ET.SubElement(output, 'line', line.attrib)
     for index in joints:
         joint = joints[index]
-        inside = False
+        joint_a = True # joint A vs B
         for line in joint:
-            edge = generate_edge(line, inside, thickness, segments)
-            for segment in edge:
-                ET.SubElement(output, 'line', segment.attrib)
+            edge = generate_edge(line, thickness, segments, joint_a)
+            for seg in edge.findall('line'):
+                output.append(seg)
+            joint_a = not joint_a
+
     return new_tree
 
 if __name__ == "__main__":
