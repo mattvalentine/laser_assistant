@@ -6,10 +6,7 @@ import argparse
 import os
 import numpy as np
 
-
-
 from box_joint_generator import make_box_joint_a, make_box_joint_b
-# from edge_transformer import get_length, get_rotation_angle
 
 # Namespace for svg formatting
 NS = {'svg': 'http://www.w3.org/2000/svg'}
