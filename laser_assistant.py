@@ -72,17 +72,23 @@ def points_from_line(line):
     point2 = [float(line.attrib["x2"]), float(line.attrib["y2"])]
     return(point1, point2)
 
+# TODO: change segments to more general type specific parameters
 def generate_edge(line, thickness, segments, joint_a):
     """generates the joint edges"""
     point1, point2 = points_from_line(line)
     length = get_length(point1, point2)
     angle = get_rotation_angle(point1, point2)
 
+    # TODO: implement logic for different joint types
+
+    # uses external joint generator to create horizontal edge
+    # (easy drop in replacement with other joint types)
     if joint_a:
         edge = make_box_joint_a(length, segments, thickness)
     else:
         edge = make_box_joint_b(length, segments, thickness)
 
+    # places edge by rotating and moving the generated joint
     for seg in edge.findall('line'):
         rotate = f"rotate({angle},{point1[0]},{point1[1]})"
         translate = f"translate({point1[0]},{point1[1]})"
@@ -103,8 +109,8 @@ def parse_svg(filename):
     joints = {}
     shapes = {}
 
-    # viewbox / artboard attributes
-    viewbox = root.attrib
+    # viewbox / artboard dimenstions
+    viewbox = root.attrib["viewBox"]
 
     for layer in tree.findall('svg:g', NS):
         layer_name = layer.attrib['id']
@@ -122,7 +128,8 @@ def process_joints(joints, shapes, viewbox, thickness, segments):
     """Iterate through joints and modify shapes."""
 
     # create basic structure of output SVG
-    new_root = ET.Element('svg', viewbox)
+    new_root = ET.Element('svg')
+    new_root.attrib["viewBox"] = viewbox
     new_root.attrib["xmlns"] = "http://www.w3.org/2000/svg"
     new_tree = ET.ElementTree(new_root)
 
