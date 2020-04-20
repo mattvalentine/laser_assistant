@@ -1,29 +1,14 @@
 # box_joint_generator.py
 """A tool to make a box joint for laser cutting"""
-import xml.etree.ElementTree as ET
 
+from svgutils import make_blank_svg, make_segment
 
-
-def make_blank_svg(width, height):
-    """makes a blank svg with a viewbox matching the parameters"""
-    new_root = ET.Element("svg")
-    new_root.attrib["xmlns"] = "http://www.w3.org/2000/svg"
-    new_root.attrib["viewBox"] = f"0 0 {width} {height}"
-    new_tree = ET.ElementTree(new_root)
-    return new_tree
-
-def make_segment(point1, point2):
-    """generates an svg line from two points"""
-    segment = ET.Element("line")
-    segment.attrib["style"] = "fill:none;stroke:#00a651;stroke-miterlimit:10;stroke-width:0.25px"
-    segment.attrib["x1"] = f"{point1[0]}"
-    segment.attrib["y1"] = f"{point1[1]}"
-    segment.attrib["x2"] = f"{point2[0]}"
-    segment.attrib["y2"] = f"{point2[1]}"
-    return segment
-
-def make_box_joint_a(length, segments, thickness):
+def make_box_joint_a(joint_parameters):
     """generates a box joint"""
+
+    length = joint_parameters['length']
+    segments = joint_parameters['segments']
+    thickness = joint_parameters['thickness']
 
     joint = make_blank_svg(length, thickness)
     root = joint.getroot()
@@ -50,8 +35,12 @@ def make_box_joint_a(length, segments, thickness):
 
     return joint
 
-def make_box_joint_b(length, segments, thickness):
+def make_box_joint_b(joint_parameters):
     """generates the opposite box joint"""
+
+    length = joint_parameters['length']
+    segments = joint_parameters['segments']
+    thickness = joint_parameters['thickness']
 
     joint = make_blank_svg(length, thickness)
     root = joint.getroot()
@@ -79,12 +68,16 @@ def make_box_joint_b(length, segments, thickness):
     return joint
 
 if __name__ == "__main__":
+    JOINT_PARAMETERS = {}
     THICKNESS = 3.0
     LENGTH = 100.0
     SEGMENTS = 5
+    JOINT_PARAMETERS['thickness'] = THICKNESS
+    JOINT_PARAMETERS['length'] = LENGTH
+    JOINT_PARAMETERS['segments'] = SEGMENTS
 
-    NEWJOINTA = make_box_joint_a(LENGTH, SEGMENTS, THICKNESS)
-    NEWJOINTB = make_box_joint_b(LENGTH, SEGMENTS, THICKNESS)
+    NEWJOINTA = make_box_joint_a(JOINT_PARAMETERS)
+    NEWJOINTB = make_box_joint_b(JOINT_PARAMETERS)
 
     NEWJOINTA.write('jointA.svg')
     NEWJOINTB.write('jointB.svg')

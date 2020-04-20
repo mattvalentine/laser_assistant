@@ -7,17 +7,22 @@ import os
 import numpy as np
 
 from box_joint_generator import make_box_joint_a, make_box_joint_b
+from tslot_joint_generator import make_tslot_joint_a, make_tslot_joint_b
 
 # Namespace for svg formatting
 NS = {'svg': 'http://www.w3.org/2000/svg'}
 
 def run_parser():
     """Parses arguements and returns constants."""
+    joint_parameters = {}
+
     parser = argparse.ArgumentParser()
     parser.add_argument("--filename")
     parser.add_argument("--thickness")
     parser.add_argument("--segments")
-
+    parser.add_argument("--kerf")
+    parser.add_argument("--jointtype")
+    parser.add_argument("--tsize")
     parser.parse_args()
 
     args = parser.parse_args()
@@ -34,7 +39,7 @@ def run_parser():
     if args.thickness:
         thickness = float(args.thickness)
     else:
-        thickness = 10
+        thickness = 5
     if thickness <= 0:
         print(f"Invalid thickness: {thickness}")
         exit()
@@ -43,11 +48,37 @@ def run_parser():
         segments = int(args.segments)
     else:
         segments = 5
-    if segments < 3:
-        print(f"Invalid segment quantity (Must be at least 3 segments): {segments}")
+
+
+    if args.kerf:
+        kerf = float(args.kerf)
+    else:
+        kerf = 0.0
+    if kerf < 0:
+        print(f"Invalid kerf size (Must be positive or 0): {kerf}")
         exit()
 
-    return(filename, thickness, segments)
+    if args.jointtype:
+        joint_type = str(args.jointtype)
+    else:
+        joint_type = 'box'
+    print(joint_type)
+
+    tsize = 'M2.5'
+    bolt_length = 20.0
+    clearance = 0.25
+    bolts_per_side = segments
+
+    joint_parameters['thickness'] = thickness
+    joint_parameters['segments'] = segments
+    joint_parameters['kerf'] = kerf
+    joint_parameters['type'] = joint_type
+    joint_parameters['tsize'] = tsize
+    joint_parameters['bolt_length'] = bolt_length
+    joint_parameters['clearance'] = clearance
+    joint_parameters['bolts_per_side'] = bolts_per_side
+
+    return(filename, joint_parameters)
 
 def get_length(point1, point2):
     """calculates the length of a segment √x²+y²"""
@@ -69,21 +100,33 @@ def points_from_line(line):
     point2 = [float(line.attrib["x2"]), float(line.attrib["y2"])]
     return(point1, point2)
 
-# TODO: change segments to more general type specific parameters
-def generate_edge(line, thickness, segments, joint_a):
+def generate_edge(line, joint_parameters, joint_a):
     """generates the joint edges"""
     point1, point2 = points_from_line(line)
     length = get_length(point1, point2)
     angle = get_rotation_angle(point1, point2)
 
-    # TODO: implement logic for different joint types
+    joint_parameters['length'] = length
+    joint_parameters['angle'] = angle
+
+    joint_type = joint_parameters['type']
+
+
+    # TODO: use classes or at least enums to organize this better
 
     # uses external joint generator to create horizontal edge
     # (easy drop in replacement with other joint types)
-    if joint_a:
-        edge = make_box_joint_a(length, segments, thickness)
-    else:
-        edge = make_box_joint_b(length, segments, thickness)
+    if joint_type == 'box':
+        if joint_a:
+            edge = make_box_joint_a(joint_parameters)
+        else:
+            edge = make_box_joint_b(joint_parameters)
+    elif joint_type == 'tslot':
+        if joint_a:
+            edge = make_tslot_joint_a(joint_parameters)
+        else:
+            edge = make_tslot_joint_b(joint_parameters)
+
 
     # places edge by rotating and moving the generated joint
     for seg in edge.findall('line'):
@@ -121,7 +164,7 @@ def parse_svg(filename):
                 shapes[layer_name].append(line)
     return(joints, shapes, viewbox)
 
-def process_joints(joints, shapes, viewbox, thickness, segments):
+def process_joints(joints, shapes, viewbox, joint_parameters):
     """Iterate through joints and modify shapes."""
 
     # create basic structure of output SVG
@@ -142,7 +185,7 @@ def process_joints(joints, shapes, viewbox, thickness, segments):
         joint = joints[index]
         joint_a = True # joint A vs B
         for line in joint:
-            edge = generate_edge(line, thickness, segments, joint_a)
+            edge = generate_edge(line, joint_parameters, joint_a)
             for seg in edge.findall('line'):
                 output.append(seg)
             joint_a = not joint_a
@@ -150,9 +193,9 @@ def process_joints(joints, shapes, viewbox, thickness, segments):
     return new_tree
 
 if __name__ == "__main__":
-    FILENAME, THICKNESS, SEGMENTS = run_parser()
+    FILENAME, JOINT_PARAMETERS = run_parser()
     (JOINTS, SHAPES, VIEWBOX) = parse_svg(FILENAME)
-    OUTPUT_SVG = process_joints(JOINTS, SHAPES, VIEWBOX, THICKNESS, SEGMENTS)
+    OUTPUT_SVG = process_joints(JOINTS, SHAPES, VIEWBOX, JOINT_PARAMETERS)
     OUTPUT_SVG.write('output.svg')
     # os.system("open output.svg")
     
