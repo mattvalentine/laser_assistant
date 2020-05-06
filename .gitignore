@@ -1,7 +1,9 @@
 **/.DS_Store
 
 # output files
-*.svg
+test_*.svg
+output.svg
+joint*.svg
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

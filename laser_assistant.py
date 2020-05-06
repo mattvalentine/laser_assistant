@@ -112,7 +112,6 @@ def generate_edge(line, joint_parameters, joint_a):
     joint_type = joint_parameters['type']
 
 
-    # TODO: use classes or at least enums to organize this better
 
     # uses external joint generator to create horizontal edge
     # (easy drop in replacement with other joint types)
