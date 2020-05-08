@@ -1,9 +1,13 @@
 # tslot_joint_generator.py
 """A tool to make a T-slot joint for laser cutting"""
 
+# TODO: Convert to new class in joint_generators.py
+
 from svgutils import make_blank_svg, make_segment
 
-NUT_BOLT_SIZES = {'M2.5': {'nut_width':5.0, 'nut_height':2.0, 'bolt_diameter':2.5}}
+NUT_BOLT_SIZES = {'M2.5': {'nut_width': 5.0,
+                           'nut_height': 2.0, 'bolt_diameter': 2.5}}
+
 
 def make_tslot_sequence(nut_bolt_parameters):
     """generates a T shaped cut out for nut and bolt"""
@@ -44,6 +48,7 @@ def make_tslot_sequence(nut_bolt_parameters):
     print(sequence)
 
     return sequence
+
 
 def make_notch_sequence(nut_bolt_parameters):
     """generates a T shaped cut out for nut and bolt"""
@@ -101,7 +106,8 @@ def make_tslot_joint_a(joint_parameters):
     for _ in range(bolts_per_side):
         bolt_location = [bolt_location[0] + slot_interval, 0]
         for step in tslot_sequence:
-            next_point = [bolt_location[0] + step[0], bolt_location[1] + step[1]]
+            next_point = [bolt_location[0] +
+                          step[0], bolt_location[1] + step[1]]
             new_segment = make_segment(last_point, next_point)
             root.append(new_segment)
             last_point = next_point
@@ -141,7 +147,8 @@ def make_tslot_joint_b(joint_parameters):
     for _ in range(bolts_per_side):
         bolt_location = [bolt_location[0] + slot_interval, 0]
         for step in tslot_sequence:
-            next_point = [bolt_location[0] + step[0], bolt_location[1] + step[1]]
+            next_point = [bolt_location[0] +
+                          step[0], bolt_location[1] + step[1]]
             new_segment = make_segment(last_point, next_point)
             root.append(new_segment)
             last_point = next_point
@@ -151,6 +158,7 @@ def make_tslot_joint_b(joint_parameters):
     last_point = next_point
 
     return joint
+
 
 if __name__ == "__main__":
     JOINT_PARAMETERS = {}
