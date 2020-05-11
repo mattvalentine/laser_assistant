@@ -3,10 +3,10 @@
 
 import os
 import argparse
-from joint_generators import BoxJoint, FlatJoint
+from joint_generators import FlatJoint, BoxJoint, TslotJoint
 
 
-def laser_parser():
+def parse_command():
     """Parses arguements and returns constants."""
     parameters = {}
 
@@ -60,16 +60,18 @@ def laser_parser():
     if args.jointtype:
         joint_type = str(args.jointtype)
     else:
-        joint_type = 'box'
+        joint_type = 'tslot'
 
     if joint_type == 'box':
         generator = BoxJoint
+    elif joint_type == 'tslot':
+        generator = TslotJoint
     else:
         generator = FlatJoint
 
     tsize = 'M2.5'
     bolt_length = 20.0
-    clearance = 0.25
+    clearance = 1.5
     bolts_per_side = segments
 
     parameters['thickness'] = thickness

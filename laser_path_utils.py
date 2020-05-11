@@ -225,8 +225,6 @@ def subtract_paths(first, second):
         if not this_segment_overlaps:
             non_overlapping_segments.append(this_segment)
 
-    print(non_overlapping_segments)
-
     non_overlapping_paths = segments_to_paths(non_overlapping_segments)
 
     return non_overlapping_paths
@@ -249,8 +247,6 @@ def intersect_paths(first, second):
                 this_segment_overlaps = True
         if this_segment_overlaps:
             overlapping_segments.append(this_segment)
-
-    print(overlapping_segments)
 
     overlapping_paths = segments_to_paths(overlapping_segments)
 

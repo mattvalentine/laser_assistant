@@ -89,7 +89,7 @@ def get_geometry(tree, parameters):
     joints = process_joints(tree['Joints'], parameters)
     cut_geometry = subtract_geometry(perimeters, cuts)
     processed_geometry = subtract_geometry(cut_geometry, joints)
-    return (perimeters, processed_geometry)
+    return (cut_geometry, processed_geometry)
 
 
 def get_kerf(paths, kerf_size):
@@ -128,29 +128,31 @@ def process_design(design_model, parameters):
     output_model['attrib'] = design_model['attrib']
 
     output_model['tree']['Original'] = {'paths': original}
-    original_style = "fill:none;stroke:#000000;stroke-miterlimit:10;stroke-width:0.25px"
+    original_style = "fill:#000000;fill-opacity:0.1;stroke:#000000;stroke-miterlimit:10;stroke-width:0.25px"
     output_model['tree']['Original']['style'] = original_style
 
     output_model['tree']['Processed'] = {'paths': processed}
-    processed_style = "fill:none;stroke:#00ff00;stroke-miterlimit:10;stroke-width:0.25px"
+    processed_style = "fill:#00ff00;fill-opacity:0.1;stroke:none"
     output_model['tree']['Processed']['style'] = processed_style
 
     output_model['tree']['Visible'] = {'paths': outside_kerf}
-    visible_style = "fill:none;stroke:#ff0000;stroke-miterlimit:10;stroke-width:0.25px"
+    slow_kerf_size = parameters['slow_kerf']
+    visible_style = f"fill:none;stroke:#ff0000;stroke-miterlimit:10;stroke-width:{slow_kerf_size}px;stroke-linecap:round"
     output_model['tree']['Visible']['style'] = visible_style
 
     output_model['tree']['Hidden'] = {'paths': inside_kerf}
-    inside_style = "fill:none;stroke:#0000ff;stroke-miterlimit:10;stroke-width:0.25px"
+    fast_kerf_size = parameters['fast_kerf']
+    inside_style = f"fill:none;stroke:#0000ff;stroke-miterlimit:10;stroke-width:{fast_kerf_size}px;stroke-linecap:round"
     output_model['tree']['Hidden']['style'] = inside_style
 
     return output_model
 
 
 if __name__ == "__main__":
-    from laser_cmd_parser import laser_parser
+    from laser_cmd_parser import parse_command
     from laser_svg_parser import parse_svgfile, model_to_svg_file
 
-    IN_FILE, OUT_FILE, PARAMETERS = laser_parser()
+    IN_FILE, OUT_FILE, PARAMETERS = parse_command()
     DESIGN = parse_svgfile(IN_FILE)
     OUTPUT = process_design(DESIGN, PARAMETERS)
     model_to_svg_file(OUTPUT, filename=OUT_FILE)
