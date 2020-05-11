@@ -11,7 +11,6 @@ NUT_BOLT_SIZES = {'M2.5': {'nut_width': 5.0,
 
 def make_tslot_sequence(nut_bolt_parameters):
     """generates a T shaped cut out for nut and bolt"""
-    print(nut_bolt_parameters)
 
     tsize = nut_bolt_parameters['tsize']
     bolt_length = nut_bolt_parameters['bolt_length']

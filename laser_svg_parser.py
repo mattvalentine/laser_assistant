@@ -1,5 +1,6 @@
 # svg_parser.py
-"""functions to parse svg files for laser cutting applications"""
+"""functions to parse specially formatted svg files and
+   python dictionary models for laser cutting applications"""
 
 import xml.etree.ElementTree as ET
 import json

@@ -3,6 +3,7 @@
 
 import os
 import argparse
+from joint_generators import BoxJoint, FlatJoint
 
 
 def laser_parser():
@@ -47,10 +48,11 @@ def laser_parser():
     else:
         segments = 5
 
+    # TODO: account for inside and outside kerf
     if args.kerf:
         kerf = float(args.kerf)
     else:
-        kerf = 0.0
+        kerf = 1.0
     if kerf < 0:
         print(f"Invalid kerf size (Must be positive or 0): {kerf}")
         exit()
@@ -60,6 +62,11 @@ def laser_parser():
     else:
         joint_type = 'box'
 
+    if joint_type == 'box':
+        generator = BoxJoint
+    else:
+        generator = FlatJoint
+
     tsize = 'M2.5'
     bolt_length = 20.0
     clearance = 0.25
@@ -68,10 +75,15 @@ def laser_parser():
     parameters['thickness'] = thickness
     parameters['segments'] = segments
     parameters['kerf'] = kerf
+    parameters['fast_kerf'] = kerf*1.2
+    parameters['slow_kerf'] = kerf
     parameters['type'] = joint_type
+    parameters['generator'] = generator
     parameters['tsize'] = tsize
     parameters['bolt_length'] = bolt_length
     parameters['clearance'] = clearance
+    parameters['x_clearance'] = clearance
+    parameters['y_clearance'] = clearance
     parameters['bolts_per_side'] = bolts_per_side
 
     return(input_file, output_file, parameters)

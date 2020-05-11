@@ -10,14 +10,25 @@ def joint_to_file(joint_path, viewbox, style="", filename="joint.svg"):
     if style == "":
         style = "fill:#231f20;stroke:#231f20;stroke-miterlimit:10;stroke-width:0.25px"
     joint_element = path_string_to_element(joint_path, style)
-    joint_tree = element_to_tree(joint_element, viewbox)
+    attrib = {'viewBox': viewbox}
+    joint_tree = element_to_tree(joint_element, attrib)
     tree_to_file(joint_tree, filename=filename)
 
 
 # TODO: Add T-slot class
+# TODO: setup inheritance
 
 class FlatJoint:
     """Generators for Flat Joints"""
+
+    def make(self, a_or_b, parameters):
+        """Shortcut to run make_a or make_b by checking string a_or_b to match 'A' or 'B"""
+        assert (a_or_b == 'A' or a_or_b == 'B')
+
+        if a_or_b == 'A':
+            return self.make_a(parameters)
+        else:
+            return self.make_b(parameters)
 
     def make_a(self, parameters):
         """Generate A half of the Joint"""
@@ -43,6 +54,15 @@ class FlatJoint:
 
 class BoxJoint:
     """Generators for Box Joints"""
+
+    def make(self, a_or_b, parameters):
+        """Shortcut to run make_a or make_b by checking string a_or_b to match 'A' or 'B"""
+        assert (a_or_b == 'A' or a_or_b == 'B')
+
+        if a_or_b == 'A':
+            return self.make_a(parameters)
+        else:
+            return self.make_b(parameters)
 
     def make_a(self, parameters):
         """Generate A half of the Joint"""
