@@ -4,6 +4,7 @@
 from laser_path_utils import (get_length, get_start, get_angle,
                               move_path, rotate_path,
                               subtract_paths, intersect_paths,
+                              combine_paths,
                               paths_to_loops, loops_to_paths)
 from laser_clipper import get_difference, get_offset_loop
 
@@ -127,22 +128,26 @@ def process_design(design_model, parameters):
     output_model = make_blank_model()
     output_model['attrib'] = design_model['attrib']
 
-    output_model['tree']['Original'] = {'paths': original}
-    original_style = "fill:#000000;fill-opacity:0.1;stroke:#000000;stroke-miterlimit:10;stroke-width:0.25px"
+    output_model['tree']['Original'] = {'paths': combine_paths(original)}
+    original_style = "fill:#000000;fill-opacity:0.1;stroke:#000000;" + \
+        f"stroke-miterlimit:10;stroke-width:0.25px"
     output_model['tree']['Original']['style'] = original_style
 
-    output_model['tree']['Processed'] = {'paths': processed}
-    processed_style = "fill:#00ff00;fill-opacity:0.1;stroke:none"
+    output_model['tree']['Processed'] = {'paths': combine_paths(processed)}
+    processed_style = "fill:#00ff00;fill-opacity:0.1;stroke:#00ff00;" + \
+        f"stroke-miterlimit:10;stroke-width:0.25px"
     output_model['tree']['Processed']['style'] = processed_style
 
-    output_model['tree']['Visible'] = {'paths': outside_kerf}
+    output_model['tree']['Visible'] = {'paths': combine_paths(outside_kerf)}
     slow_kerf_size = parameters['slow_kerf']
-    visible_style = f"fill:none;stroke:#ff0000;stroke-miterlimit:10;stroke-width:{slow_kerf_size}px;stroke-linecap:round"
+    visible_style = f"fill:none;stroke:#ff0000;stroke-miterlimit:10;" + \
+        f"stroke-width:{slow_kerf_size}px;stroke-linecap:round;stroke-opacity:0.5"
     output_model['tree']['Visible']['style'] = visible_style
 
-    output_model['tree']['Hidden'] = {'paths': inside_kerf}
+    output_model['tree']['Hidden'] = {'paths': combine_paths(inside_kerf)}
     fast_kerf_size = parameters['fast_kerf']
-    inside_style = f"fill:none;stroke:#0000ff;stroke-miterlimit:10;stroke-width:{fast_kerf_size}px;stroke-linecap:round"
+    inside_style = f"fill:none;stroke:#0000ff;stroke-miterlimit:10;" + \
+        f"stroke-width:{fast_kerf_size}px;stroke-linecap:round;stroke-opacity:0.5"
     output_model['tree']['Hidden']['style'] = inside_style
 
     return output_model

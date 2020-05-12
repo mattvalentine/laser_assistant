@@ -35,6 +35,22 @@ def paths_to_loops(paths):
     return point_loop_list
 
 
+def combine_paths(paths, as_list=True):
+    """combines path strings into a single string"""
+    combined = ""
+    first = True
+    for path in paths:
+        if not first:
+            combined += " "
+        combined += path
+        first = False
+
+    if as_list:
+        return [combined]
+    else:
+        return combined
+
+
 def path_string_to_points(path_string):
     """Convert path string into a list of points"""
     path = SVGPT.parse_path(path_string)
