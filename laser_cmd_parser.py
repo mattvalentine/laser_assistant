@@ -25,7 +25,7 @@ def parse_command():
     if args.input:
         input_file = args.input
     else:
-        input_file = 'input-samples/test6-01.svg'
+        input_file = 'input-samples/test8-01.svg'
     if not os.path.exists(input_file):
         print(f"File not found: {input_file}")
         exit()

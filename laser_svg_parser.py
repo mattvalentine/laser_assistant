@@ -7,7 +7,7 @@ import json
 
 from laser_svg_utils import (element_to_tree, get_attributes, new_svg_tree,
                              path_string_to_element, tree_to_file)
-from laser_path_utils import tree_to_paths
+from laser_path_utils import tree_to_paths, combine_paths
 
 
 def parse_svg_tree(svg_root, attrib):
@@ -83,7 +83,7 @@ def layer_from_dict(name, sub_tree, svg_root):
 
 def path_from_dict(tree_dict, svg_root):
     """subfunction to convert dictionary into path"""
-    paths = tree_dict['paths']
+    paths = combine_paths(tree_dict['paths'])
     style = ""
     if 'style' in tree_dict:
         style = tree_dict['style']
