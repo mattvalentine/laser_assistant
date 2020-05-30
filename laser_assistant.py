@@ -3,7 +3,7 @@
 
 from laser_path_utils import (get_length, get_start, get_angle,
                               move_path, rotate_path,
-                              subtract_paths, intersect_paths,
+                              get_overlapping, get_not_overlapping,
                               paths_to_loops, loops_to_paths)
 from laser_clipper import get_difference, get_offset_loop
 
@@ -123,7 +123,8 @@ def get_outside_kerf(tree, parameters):
             processed = shapes['Processed']['paths']
             original_kerf = get_kerf(original, parameters['slow_kerf'])
             processed_kerf = get_kerf(processed, parameters['slow_kerf'])
-            outside_kerf = intersect_paths(processed_kerf, original_kerf)
+            outside_kerf = get_overlapping(processed_kerf, original_kerf)
+            # outside_kerf = intersect_paths(processed_kerf, original_kerf)
             tree[face]['Visible'] = {
                 'paths': outside_kerf,
                 'style': visible_style}
@@ -142,9 +143,10 @@ def get_inside_kerf(tree, parameters):
             processed = shapes['Processed']['paths']
             original_kerf = get_kerf(original, parameters['fast_kerf'])
             processed_kerf = get_kerf(processed, parameters['fast_kerf'])
-            outside_kerf = subtract_paths(processed_kerf, original_kerf)
+            # inside_kerf = subtract_paths(processed_kerf, original_kerf)
+            inside_kerf = get_not_overlapping(processed_kerf, original_kerf)
             tree[face]['Hidden'] = {
-                'paths': outside_kerf,
+                'paths': inside_kerf,
                 'style': inside_style}
     return tree
 

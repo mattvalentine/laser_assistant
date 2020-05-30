@@ -1,5 +1,8 @@
 **/.DS_Store
 
+# illustrator files
+*.ai
+
 # output files
 test_*.svg
 output.svg

@@ -7,6 +7,7 @@ import svgpathtools as SVGPT
 # it's imporatant to clone and install the repo manually. The pip/pypi version is outdated
 
 from laser_svg_utils import tree_to_tempfile
+from laser_clipper import point_on_loops
 
 
 def tempfile_to_paths(temp_svg):
@@ -174,8 +175,6 @@ def get_all_segments(loops):
         all_segments = all_segments + loop_segments
     return all_segments
 
-# TODO: proper segment math (add, subtract, intersect, XOR)
-
 
 def segments_overlap(first, second):
     """returns true if segments share more than a single point"""
@@ -212,7 +211,6 @@ def get_loop_segments(loop):
     return segments
 
 
-# TODO: join continuous paths
 def segments_to_paths(segments):
     """converts list of segments into list of paths"""
     paths = []
@@ -222,31 +220,62 @@ def segments_to_paths(segments):
     return paths
 
 
-def subtract_paths(first, second):
-    """returns the parts of the first path string that do not overlap with the second path string"""
-    # TODO: Make this more efficient
+def get_not_overlapping(first, second):
+    """returns the segments of the first path that do not overlap with the second."""
+    output_paths = []
+
     first_loops = paths_to_loops(first)
     second_loops = paths_to_loops(second)
 
-    first_segments = get_all_segments(first_loops)
-    second_segments = get_all_segments(second_loops)
+    for loop in first_loops:
+        not_overlapping = ""
+        segment_started = False
+        last_point = loop[-1]
+        for point in loop:
+            if not point_on_loops(point, second_loops):
+                if not segment_started:
+                    not_overlapping += f" M {last_point[0]},{last_point[1]}"
+                    segment_started = True
+                if last_point != point:
+                    not_overlapping += f" L {point[0]},{point[1]}"
+            else:  # close the path
+                if segment_started:
+                    not_overlapping += f" L {point[0]},{point[1]}"
+                    output_paths.append(not_overlapping)
+                    segment_started = False
+                    not_overlapping = ""
+            last_point = point
+        if segment_started:
+            output_paths.append(not_overlapping)
+    return output_paths
 
-    non_overlapping_segments = []
 
-    for this_segment in first_segments:
-        this_segment_overlaps = False
-        for other_segment in second_segments:
-            if segments_overlap(this_segment, other_segment):
-                this_segment_overlaps = True
-        if not this_segment_overlaps:
-            non_overlapping_segments.append(this_segment)
+def get_overlapping(first, second):
+    """returns the overlapping segments of the first and second path."""
+    output_paths = []
+    first_loops = paths_to_loops(first)
+    second_loops = paths_to_loops(second)
 
-    non_overlapping_paths = segments_to_paths(non_overlapping_segments)
+    for loop in first_loops:
+        overlapping = ""
+        segment_started = False
+        for point in loop:
+            if point_on_loops(point, second_loops):
+                if not segment_started:
+                    overlapping += f" M {point[0]},{point[1]}"
+                    segment_started = True
+                else:
+                    overlapping += f" L {point[0]},{point[1]}"
+            else:  # skip other points
+                if segment_started:
+                    output_paths.append(overlapping)
+                    overlapping = ""
+                segment_started = False
+        if segment_started:
+            output_paths.append(overlapping)
 
-    return non_overlapping_paths
+    return output_paths
 
-
-def intersect_paths(first, second):
     """returns the parts of the first path string that overlap with the second path string"""
     first_loops = paths_to_loops(first)
     second_loops = paths_to_loops(second)

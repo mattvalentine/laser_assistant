@@ -83,6 +83,15 @@ def get_offset_loop(shape, offset_size):
 def point_inside_loop(point, loop):
     """tests to see if a point is inside (1), on(-1), or outside (0) of a loop"""
     scaled_loop = pyclipper.scale_to_clipper(loop, SCALING_FACTOR)
-    scaled_point = [int(point[0]*SCALING_FACTOR), int(point[1]*SCALING_FACTOR)]
+    scaled_point = [int(point[0] * SCALING_FACTOR),
+                    int(point[1] * SCALING_FACTOR)]
     is_point_inside = pyclipper.PointInPolygon(scaled_point, scaled_loop)
     return is_point_inside
+
+
+def point_on_loops(point, loops):
+    """True or False based upon if a point is on any loop in a list of loops."""
+    for loop in loops:
+        if point_inside_loop(point, loop) == -1:
+            return True
+    return False

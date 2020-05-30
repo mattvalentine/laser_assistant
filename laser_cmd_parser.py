@@ -48,7 +48,6 @@ def parse_command():
     else:
         segments = 5
 
-    # TODO: account for inside and outside kerf
     if args.kerf:
         kerf = float(args.kerf)
     else:
