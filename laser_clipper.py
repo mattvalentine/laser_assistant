@@ -2,6 +2,7 @@
 """polygon math using Clipper library for laser cutting"""
 # http://www.angusj.com/delphi/clipper/documentation/Docs/Units/ClipperLib/Types/ClipType.htm
 
+
 import pyclipper
 
 SCALING_FACTOR = 1000

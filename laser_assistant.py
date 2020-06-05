@@ -42,16 +42,6 @@ def process_edge(a_or_b, edge, parameters):
     return placed_path
 
 
-# def process_joints(joints, parameters):
-#     """returns a list of joint cut paths for all joints"""
-#     processed_joints = []
-#     for joint in joints.values():
-#         for edge in ['A', 'B']:
-#             placed_path = process_edge(edge, joint[edge], parameters)
-#             processed_joints.append(placed_path)
-#     return processed_joints
-
-
 def subtract_geometry(perimeters, cuts):
     """subtracts cuts from faces"""
     perimeters_loops = paths_to_loops(perimeters)
@@ -65,7 +55,7 @@ def subtract_geometry(perimeters, cuts):
 def get_original(tree):
     """returns paths of original and target geometry"""
     original_style = "fill:#000000;fill-opacity:0.1;stroke:#000000;" + \
-        f"stroke-miterlimit:10;stroke-width:0.25px"
+        f"stroke-linejoin:round;stroke-width:0.25px"
 
     for face, shapes in tree.items():
         if face.startswith('Face'):
@@ -86,7 +76,7 @@ def get_original(tree):
 def get_processed(tree, parameters):
     """returns paths of original and target geometry"""
     processed_style = "fill:#00ff00;fill-opacity:0.1;stroke:#00ff00;" + \
-        f"stroke-miterlimit:10;stroke-width:0.25px"
+        f"stroke-linejoin:round;stroke-width:0.25px"
 
     for face, shapes in tree.items():
         if face.startswith('Face'):
@@ -114,7 +104,7 @@ def get_kerf(paths, kerf_size):
 def get_outside_kerf(tree, parameters):
     """calculate kerf compensated path for visible surfaces"""
     slow_kerf_size = parameters['slow_kerf']
-    visible_style = f"fill:none;stroke:#ff0000;stroke-miterlimit:10;" + \
+    visible_style = f"fill:none;stroke:#ff0000;stroke-linejoin:round;" + \
         f"stroke-width:{slow_kerf_size}px;stroke-linecap:round;stroke-opacity:0.5"
 
     for face, shapes in tree.items():
@@ -134,7 +124,7 @@ def get_outside_kerf(tree, parameters):
 def get_inside_kerf(tree, parameters):
     """calculate kerf compensated path for non-visible surfaces"""
     fast_kerf_size = parameters['fast_kerf']
-    inside_style = f"fill:none;stroke:#0000ff;stroke-miterlimit:10;" + \
+    inside_style = f"fill:none;stroke:#0000ff;stroke-linejoin:round;" + \
         f"stroke-width:{fast_kerf_size}px;stroke-linecap:round;stroke-opacity:0.5"
 
     for face, shapes in tree.items():
@@ -164,13 +154,7 @@ if __name__ == "__main__":
     from laser_cmd_parser import parse_command
     from laser_svg_parser import parse_svgfile, model_to_svg_file
 
-    import time
-
-    START_TIME = time.time()
-
     IN_FILE, OUT_FILE, PARAMETERS = parse_command()
     DESIGN = parse_svgfile(IN_FILE)
     OUTPUT = process_design(DESIGN, PARAMETERS)
     model_to_svg_file(OUTPUT, filename=OUT_FILE)
-
-    print(f"--- {(time.time() - START_TIME):.2f} seconds ---")
