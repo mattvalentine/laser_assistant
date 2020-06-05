@@ -42,9 +42,10 @@ def element_to_tree(element, attrib):
 
 def tree_to_tempfile(tree):
     """turn SVG tree into a tempfile"""
-    temp_svg = tempfile.NamedTemporaryFile(suffix=".svg")
+    temp_svg = tempfile.NamedTemporaryFile(suffix=".svg", delete=False)
     svg_bytes = svg_string(tree).encode('utf-8')
     temp_svg.write(svg_bytes)
+    temp_svg.close()
     return temp_svg
 
 

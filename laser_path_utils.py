@@ -12,7 +12,7 @@ from laser_clipper import point_on_loops
 
 def tempfile_to_paths(temp_svg):
     """open temp SVG file and return a path"""
-    temp_svg.seek(0)
+    # temp_svg.seek(0)
     paths, attributes = SVGPT.svg2paths(temp_svg.name)
     temp_svg.close()
     return (paths, attributes)

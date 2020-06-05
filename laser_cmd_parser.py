@@ -71,7 +71,7 @@ def parse_command():
     tsize = 'M2.5'
     bolt_length = 20.0
     clearance = 1.5
-    bolts_per_side = 3
+    bolts_per_side = segments
 
     parameters['thickness'] = thickness
     parameters['segments'] = segments
