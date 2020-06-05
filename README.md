@@ -27,7 +27,7 @@ git clone git@github.com:mathandy/svgpathtools.git; cd svgpathtools; python setu
 python laser_assistant.py
 ```
 
-This should run without errors taking `input-samples/test6-01.svg` as input and producing `output.svg` which has joints generated and kerf compensated paths.
+This should run without errors taking `input-samples/test8-01.svg` as input and producing `output.svg` which has joints generated and kerf compensated paths.
 
 ### Command line options
 
