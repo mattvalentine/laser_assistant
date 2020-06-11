@@ -6,9 +6,11 @@
         <g id="Cuts">
             <rect x="210" y="70" width="30" height="30" style="fill:none;stroke:#231f20;stroke-miterlimit:10;stroke-width:0.25px"/>
         </g>
-        <g id="Joints"><g id="J1-A">
-            <line x1="150" y1="110" x2="150" y2="10" style="fill:none;stroke:#00a651;stroke-miterlimit:10;stroke-width:0.25px"/>
-        </g></g>
+        <g id="Joints">
+            <g id="J1-A">
+                <line x1="150" y1="110" x2="150" y2="10" style="fill:none;stroke:#00a651;stroke-miterlimit:10;stroke-width:0.25px"/>
+            </g>
+        </g>
     </g>
     <g id="Face1">
         <g id="Perimeter-2" data-name="Perimeter">
@@ -18,9 +20,10 @@
             <rect x="30" y="40" width="20" height="20" style="fill:none;stroke:#231f20;stroke-miterlimit:10;stroke-width:0.25px"/>
             <rect x="40" y="70" width="20" height="30" style="fill:none;stroke:#231f20;stroke-miterlimit:10;stroke-width:0.25px"/>
         </g>
-        <g id="Joints"><g id="J1-B">
-            <line x1="110" y1="10" x2="110" y2="110" style="fill:none;stroke:#00a651;stroke-miterlimit:10;stroke-width:0.25px"/>
-        </g>
+        <g id="Joints-2" data-name="Joints">
+            <g id="J1-B">
+                <line x1="110" y1="10" x2="110" y2="110" style="fill:none;stroke:#00a651;stroke-miterlimit:10;stroke-width:0.25px"/>
+            </g>
         </g>
     </g>
 </svg>

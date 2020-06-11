@@ -276,23 +276,72 @@ def get_overlapping(first, second):
 
     return output_paths
 
-    """returns the parts of the first path string that overlap with the second path string"""
-    first_loops = paths_to_loops(first)
-    second_loops = paths_to_loops(second)
 
-    first_segments = get_all_segments(first_loops)
-    second_segments = get_all_segments(second_loops)
+def divide_pathstring_parts(pathstring):
+    """breaks single path string into substrings at each 'M' returning a list of path strings"""
+    substring = pathstring.strip()
+    paths = []
+    while 'M' in substring[1:]:
+        m_index = substring.find('M', 1)
+        if m_index > -1:
+            subpath = substring[0:m_index].strip()
+            paths.append(subpath)
+            substring = substring[m_index:].strip()
 
-    overlapping_segments = []
+    paths.append(substring)
+    return paths
 
-    for this_segment in first_segments:
-        this_segment_overlaps = False
-        for other_segment in second_segments:
-            if segments_overlap(this_segment, other_segment):
-                this_segment_overlaps = True
-        if this_segment_overlaps:
-            overlapping_segments.append(this_segment)
 
-    overlapping_paths = segments_to_paths(overlapping_segments)
+# TODO: split open/closed separation into smaller chunks
 
-    return overlapping_paths
+
+def separate_closed_paths(paths):
+    """takes a list of path strings
+    breaks non continuous paths and
+    joins connecting paths together
+    to return a list of closed paths """
+    discrete_paths = []
+    closed_paths = []
+    open_paths = []
+    dead_ends = []
+    for path in paths:
+        discrete_paths += divide_pathstring_parts(path)
+    for path in discrete_paths:
+        parsed_path = SVGPT.parse_path(path)
+        if parsed_path.isclosed():
+            closed_paths.append(path)
+        else:
+            open_paths.append(parsed_path)
+    while open_paths:
+        path = open_paths.pop()
+        # print(path)
+        new_path = None
+        for other_path in open_paths:
+            if path.end == other_path.start:
+                new_path = path.d() + " " + other_path.d().replace('M', 'L')
+                open_paths.remove(other_path)
+                break
+            elif path.start == other_path.end:
+                new_path = other_path.d() + " " + path.d().replace('M', 'L')
+                open_paths.remove(other_path)
+                break
+            elif path.end == other_path.end:
+                new_path = path.d() + " " + other_path.reversed().d().replace('M', 'L')
+                open_paths.remove(other_path)
+                break
+            elif path.start == other_path.start:
+                new_path = path.reversed().d() + " " + other_path.d().replace('M', 'L')
+                open_paths.remove(other_path)
+                break
+        if new_path is not None:
+            parsed_new_path = SVGPT.parse_path(new_path)
+            if parsed_new_path.isclosed():
+                closed_paths.append(new_path)
+            else:
+                open_paths.append(parsed_new_path)
+            # print(new_path)
+        else:
+            dead_ends.append(path.d())
+
+    open_paths = dead_ends
+    return closed_paths, open_paths
