@@ -4,18 +4,21 @@
 
 # from laser_svg_parser import parse_svgfile
 import svgpathtools as SVGPT
-# from laser_svg_utils import path_string_to_element, element_to_tree, tree_to_file
-from laser_path_utils import separate_closed_paths, paths_to_loops, combine_paths
+from laser_path_utils import separate_closed_paths, paths_to_loops
 from laser_assistant import make_blank_model
 from laser_clipper import point_inside_loop
-from laser_svg_parser import model_to_svg_file
+from laser_svg_parser import model_to_svg_file, parse_svgfile
 
 
 def svg_to_model(filename):
     """converts svg file to design model"""
+    svg_data = parse_svgfile(filename)
     combined_path = svg_to_combined_paths(filename)
-    closed_paths, _ = separate_closed_paths([combined_path])
+    closed_paths, open_paths = separate_closed_paths([combined_path])
     model = paths_to_faces(closed_paths)
+    model['attrib'] = svg_data['attrib']
+    if open_paths is not []:
+        model['tree']['Open Paths'] = {'paths': open_paths}
     return model
 
 
@@ -35,8 +38,7 @@ def paths_to_faces(paths):
     """takes a list of paths and returns model with faces"""
     model = make_blank_model()
     perims, cuts = separate_perims_from_cuts(paths)
-    print(perims)
-    print(cuts)
+
     for index, perim in enumerate(perims):
         model['tree'][f"face{index+1}"] = {
             "Perimeter": {'paths': [perim]}, "Cuts": {'paths': []}}
@@ -176,17 +178,8 @@ def is_inside(path, other_path):
 #     return closed_paths, open_paths
 if __name__ == "__main__":
 
-    # do_more_stuff()
-    # PATHSTRING1 = "M 0, 0 L 1, 0 M0, 0 L0, 1"
-    # PATHSTRING2 = " M0, 1 L 1, 0"
-    # PATHSTRING3 = "  M3,3L4,3L4,4L3,4Z"
-    # PATHSTRING4 = "M5,5 L5,6 L6,6 M5,5 L6,5 L6,6"
-    # PATHSTRING5 = "M7,7 L 8,8"
-    # PATHS = [PATHSTRING1, PATHSTRING2, PATHSTRING3, PATHSTRING4, PATHSTRING5]
-    # CP, OP = separate_closed_paths(PATHS)
-    # print(CP)
-    # print(OP)
-    FILENAME = "input-samples/test8-01.svg"
+    # FILENAME = "input-samples/test8-01.svg"
+    FILENAME = "input-samples/test9-01.svg"
+    # FILENAME = "input-samples/100_x_100_x_345_drawer_alt.svg"
     MODEL = svg_to_model(FILENAME)
-    print(MODEL)
     model_to_svg_file(MODEL)
