@@ -1,12 +1,19 @@
 **/.DS_Store
 
+# scratch files
+scratch.py
+blah.svg
+
 # illustrator files
 *.ai
 
 # output files
 test_*.svg
 output.svg
+edges.svg
 joint*.svg
+
+
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

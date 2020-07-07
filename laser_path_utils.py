@@ -345,3 +345,11 @@ def separate_closed_paths(paths):
 
     open_paths = dead_ends
     return closed_paths, open_paths
+
+
+if __name__ == "__main__":
+    PATHS, ATTRIB = SVGPT.svg2paths("input-samples/test9-01.svg")
+    PATH_STRINGS = []
+    for apath in PATHS:
+        PATH_STRINGS.append(apath.d())
+    print(PATH_STRINGS)

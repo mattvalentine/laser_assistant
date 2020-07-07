@@ -17,7 +17,7 @@ def svg_to_model(filename):
     closed_paths, open_paths = separate_closed_paths([combined_path])
     model = paths_to_faces(closed_paths)
     model['attrib'] = svg_data['attrib']
-    if open_paths is not []:
+    if open_paths != []:
         model['tree']['Open Paths'] = {'paths': open_paths}
     return model
 
