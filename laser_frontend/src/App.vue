@@ -1,28 +1,36 @@
 <template>
-  <div id="app">
-    <img alt="Vue logo" src="./assets/logo.png">
-    <HelloWorld msg="Welcome to Your Vue.js App"/>
+  <div id="app" class="ui">
+    <OutputSVG />
+    <EdgeSVG />
+    <Parameters />
   </div>
 </template>
 
 <script>
-import HelloWorld from './components/HelloWorld.vue'
+import OutputSVG from "./components/OutputSVG";
+import EdgeSVG from "./components/EdgeSVG";
+import Parameters from "./components/Parameters";
 
 export default {
-  name: 'App',
+  name: "App",
   components: {
-    HelloWorld
+    OutputSVG,
+    EdgeSVG,
+    Parameters
   }
-}
+};
 </script>
 
 <style>
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
+body {
+  margin: 0;
+}
+
+.ui {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-template-rows: 1fr;
+  grid-column-gap: 1vw;
+  width: vmin;
 }
 </style>

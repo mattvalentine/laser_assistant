@@ -5,15 +5,21 @@
 # flask run
 
 from flask import Flask, request, redirect, jsonify
+from flask_cors import CORS
 
 # it's common practice to use lowercase app, so we'll ignore pep8 just this once
 app = Flask(__name__)  # pylint: disable=invalid-name
+app.config['CORS_HEADERS'] = 'Content-Type'
+
+# Allow VUE client to make requests to this API server
+VUE_CLIENT = {"origins": "http://localhost:8080"}
+cors = CORS(app, resources={r"*": VUE_CLIENT})  # pylint: disable=invalid-name
 
 
 @app.route('/')
 def main_interface():
     """This is the root of the html interface"""
-    # redirects to vue app
+    # redirects to VUE app
     return redirect('http://localhost:8080/')
 
 
