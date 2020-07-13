@@ -31,11 +31,12 @@ def parameters():
     return jsonify(params)
 
 
-@app.route('/svgclick')
+@app.route('/edge_click')
 def svgclick():
     """reacts to the click of an svg element"""
-    svg_args = request.args
-    print(svg_args)
+    edge_args = request.args
+    print(edge_args)
+    return jsonify(edge_args)
 
 
 @app.route('/get_output')
@@ -46,8 +47,9 @@ def get_output():
 
 @app.route('/get_edges')
 def get_edges():
-    """returns edges.svg"""
-    return get_svg_response('edges.svg')
+    """returns edges.json"""
+    # return get_svg_response('edges.svg')
+    return get_json_response('edges.json')
 
 
 def get_svg_response(filename):
@@ -59,5 +61,18 @@ def get_svg_response(filename):
         response=svgdata,
         status=200,
         mimetype='image/svg+xml'
+    )
+    return response
+
+
+def get_json_response(filename):
+    """returns a response with json object"""
+    jsonfile = open(filename, "r")
+    jsondata = jsonfile.read()
+    jsonfile.close()
+    response = app.response_class(
+        response=jsondata,
+        status=200,
+        mimetype='application/json'
     )
     return response
