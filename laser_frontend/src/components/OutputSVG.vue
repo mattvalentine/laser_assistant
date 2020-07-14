@@ -1,22 +1,11 @@
 <template>
-  <div class="output" v-html="output_svg"></div>
+  <div class="output" v-html="outsvg"></div>
 </template>
 
 <script>
-const axios = require("axios").default;
-
 export default {
   name: "OutputSVG",
-  data() {
-    return {
-      output_svg: "",
-    };
-  },
-  mounted() {
-    axios
-      .get("http://localhost:5000/get_output")
-      .then((response) => (this.output_svg = response.data));
-  },
+  props: ["outsvg"]
 };
 </script>
 
@@ -27,5 +16,10 @@ export default {
   display: grid;
   align-items: center;
   z-index: 0;
+  width: 100%;
+}
+
+.output > svg {
+  width: 100%;
 }
 </style>

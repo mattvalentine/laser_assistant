@@ -4,7 +4,7 @@
 # export FLASK_APP=laser_flask.py
 # flask run
 
-from flask import Flask, request, redirect, jsonify
+from flask import Flask, request, redirect
 from flask_cors import CORS
 
 # it's common practice to use lowercase app, so we'll ignore pep8 just this once
@@ -23,12 +23,12 @@ def main_interface():
     return redirect('http://localhost:8080/')
 
 
-@app.route('/parameters', methods=['POST'])
+@app.route('/parameters')
 def parameters():
     """takes the params and writes them to a file"""
-    params = request.form
+    params = request.args
     print(params)
-    return jsonify(params)
+    return get_svg_response('output.svg')
 
 
 @app.route('/edge_click')
@@ -36,12 +36,14 @@ def svgclick():
     """reacts to the click of an svg element"""
     edge_args = request.args
     print(edge_args)
-    return jsonify(edge_args)
+    return get_svg_response('output.svg')
 
 
-@app.route('/get_output')
+@app.route('/get_output', methods=['GET', 'POST'])
 def get_output():
     """returns output.svg"""
+    if request.method == 'POST':
+        print(request.files)
     return get_svg_response('output.svg')
 
 
