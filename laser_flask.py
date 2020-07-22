@@ -7,24 +7,27 @@
 import json
 
 from flask import Flask, request, redirect, jsonify
-from flask_cors import CORS
+# from flask_cors import CORS
 
 from laser_assistant import svg_to_model, model_to_svg_file, process_web_design
 
+# tell flask to host the front end
+VUE_STATIC = "./laser_frontend/dist/"
+
 # it's common practice to use lowercase app, so we'll ignore pep8 just this once
-app = Flask(__name__)  # pylint: disable=invalid-name
-app.config['CORS_HEADERS'] = 'Content-Type'
+app = Flask(__name__, static_folder=VUE_STATIC)  # pylint: disable=invalid-name
+# app.config['CORS_HEADERS'] = 'Content-Type'
 
 # Allow VUE client to make requests to this API server
-VUE_CLIENT = {"origins": "http://localhost:8080"}
-cors = CORS(app, resources={r"*": VUE_CLIENT})  # pylint: disable=invalid-name
+VUE_CLIENT = {"origins": "*"}
+# cors = CORS(app, resources={r"*": VUE_CLIENT})  # pylint: disable=invalid-name
 
 
 @app.route('/')
 def main_interface():
     """This is the root of the html interface"""
-    # redirects to VUE app
-    return redirect('http://localhost:8080/')
+    # return redirect('http://localhost:8080/') # for development
+    return redirect('index.html')
 
 
 @app.route('/get_output', methods=['GET', 'POST'])
@@ -65,14 +68,5 @@ def get_svg_response(filename):
     return response
 
 
-def get_json_response(filename):
-    """returns a response with json object"""
-    jsonfile = open(filename, "r")
-    jsondata = jsonfile.read()
-    jsonfile.close()
-    response = app.response_class(
-        response=jsondata,
-        status=200,
-        mimetype='application/json'
-    )
-    return response
+if __name__ == '__main__':
+    app.run()

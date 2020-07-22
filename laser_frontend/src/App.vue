@@ -25,60 +25,60 @@ export default {
     OutputSVG,
     EdgeSVG,
     Parameters,
-    LoadSVG
+    LoadSVG,
   },
-  data: function() {
+  data: function () {
     return {
       svgLoaded: false,
       outputModel: "<svg/>",
       inputModel: {},
       laserParams: {
         thickness: 3.1,
-        kerf: 0.27
+        kerf: 0.27,
       },
       AB: true,
-      joint_index: 1
+      joint_index: 1,
     };
   },
   methods: {
-    loadSVG: function(svgInput) {
+    loadSVG: function (svgInput) {
       this.svgLoaded = true;
       let formData = new FormData();
       formData.append("svgInput", svgInput);
       // formData.append("laserParams", JSON.stringify(this.laserParams));
 
       axios
-        .post("http://localhost:5000/get_model", formData, {
+        .post("get_model", formData, {
           headers: {
-            "Content-Type": "multipart/form-data"
-          }
+            "Content-Type": "multipart/form-data",
+          },
         })
-        .then(response => {
+        .then((response) => {
           this.inputModel = response.data;
           this.updateOutput();
         });
     },
-    updateOutput: function() {
+    updateOutput: function () {
       let formData = new FormData();
       formData.append("inputModel", JSON.stringify(this.inputModel));
       formData.append("laserParams", JSON.stringify(this.laserParams));
       // this.outputModel = outsvg;
       axios
-        .post("http://localhost:5000/get_output", formData, {
+        .post("get_output", formData, {
           headers: {
-            "Content-Type": "multipart/form-data"
-          }
+            "Content-Type": "multipart/form-data",
+          },
         })
-        .then(response => {
+        .then((response) => {
           this.outputModel = response.data;
         });
     },
-    updateParams: function(newParams) {
+    updateParams: function (newParams) {
       console.log(newParams);
       this.laserParams = newParams;
       this.updateOutput();
     },
-    addJoint: function(edge) {
+    addJoint: function (edge) {
       const jointName =
         "J" + this.joint_index.toString() + (this.AB ? "A" : "B");
       this.inputModel.joints[jointName] = { path: edge.d, face: edge.face };
@@ -89,8 +89,8 @@ export default {
       }
 
       this.updateOutput();
-    }
-  }
+    },
+  },
 };
 </script>
 
