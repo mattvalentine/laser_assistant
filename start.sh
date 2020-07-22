@@ -1,5 +1,9 @@
-#!/bin/bash
+# #!/bin/bash
 
-python svgpathtools/setup.py install
+# git clone https://github.com/mathandy/svgpathtools.git
+# python svgpathtools/setup.py install
 
-python laser_flask.py
+# python laser_flask.py
+
+export FLASK_APP=laser_flask.py
+flask run
