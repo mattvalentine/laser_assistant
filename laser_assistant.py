@@ -8,7 +8,7 @@ from laser_path_utils import (get_length, get_start, get_angle,
                               separate_closed_paths, is_inside,
                               path_to_segments)
 from laser_clipper import get_difference, get_offset_loop
-import svgpathtools as SVGPT
+import svgpathtools.svgpathtools as SVGPT
 from laser_svg_parser import separate_perims_from_cuts, parse_svgfile, model_to_svg_file
 from joint_generators import FlatJoint, BoxJoint, TslotJoint
 

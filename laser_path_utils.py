@@ -3,7 +3,7 @@
 
 import numpy as np
 
-import svgpathtools as SVGPT
+import svgpathtools.svgpathtools as SVGPT
 # it's imporatant to clone and install the repo manually. The pip/pypi version is outdated
 
 from laser_svg_utils import tree_to_tempfile
