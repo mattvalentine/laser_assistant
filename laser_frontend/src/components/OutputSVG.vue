@@ -1,5 +1,5 @@
 <template>
-  <div class="output" v-html="outsvg"></div>
+  <div class="output model" v-html="outsvg"></div>
 </template>
 
 <script>
@@ -11,12 +11,12 @@ export default {
 
 <style>
 .output {
-  grid-column: 1 / 4;
+  /* grid-column: 1 / 4;
   grid-row: 1;
   display: grid;
-  align-items: center;
+  align-items: center; */
   z-index: 0;
-  width: 100%;
+  /* width: 100%; */
 }
 
 .output > svg {

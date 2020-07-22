@@ -7,7 +7,7 @@ import svgpathtools as SVGPT
 # it's imporatant to clone and install the repo manually. The pip/pypi version is outdated
 
 from laser_svg_utils import tree_to_tempfile
-from laser_clipper import point_on_loops
+from laser_clipper import point_on_loops, point_inside_loop
 
 
 def tempfile_to_paths(temp_svg):
@@ -314,7 +314,6 @@ def separate_closed_paths(paths):
             open_paths.append(parsed_path)
     while open_paths:
         path = open_paths.pop()
-        # print(path)
         new_path = None
         for other_path in open_paths:
             if path.end == other_path.start:
@@ -339,12 +338,33 @@ def separate_closed_paths(paths):
                 closed_paths.append(new_path)
             else:
                 open_paths.append(parsed_new_path)
-            # print(new_path)
         else:
             dead_ends.append(path.d())
 
     open_paths = dead_ends
     return closed_paths, open_paths
+
+
+def is_inside(path, other_path):
+    """checks if path is inside other_path and returns true or false"""
+    loop = paths_to_loops([path])[0]
+    other_loop = paths_to_loops([other_path])[0]
+    for point in loop:
+        if point_inside_loop(point, other_loop) == 1:
+            return True
+    return False
+
+
+def path_to_segments(path_string):
+    """breaks down a path into a list of segments"""
+    segments = []
+    path = SVGPT.parse_path(path_string)
+    for segment in path:
+        if isinstance(segment, SVGPT.path.Line):  # pylint: disable=maybe-no-member
+            points = points_from_line(segment)
+            new_path_string = f"M {points[0][0]} {points[0][1]} L {points[1][0]} {points[1][1]}"
+            segments.append(new_path_string)
+    return segments
 
 
 if __name__ == "__main__":

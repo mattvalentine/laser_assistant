@@ -3,7 +3,7 @@
     <p>
       Thickness (mm):
       <br />
-      <input name="thickness" v-model="thickness" />
+      <input name="thickness" v-model="newThickness" type="number" step="0.1" @change="applyParams" />
     </p>
 
     <p>
@@ -20,35 +20,37 @@
     <p>
       Kerf Radius (mm):
       <br />
-      <input name="kerf" v-model="kerf" />
+      <input name="kerf" v-model="newKerf" type="number" step="0.01" @change="applyParams" />
     </p>
     <button @click="applyParams">Apply</button>
   </div>
 </template>
 
 <script>
-const axios = require("axios").default;
+// const axios = require("axios").default;
 
 export default {
   name: "Parameters",
+  props: ["thickness", "kerf"],
   data: function() {
     return {
-      thickness: 3.1,
-      kerf: 0.27,
+      newThickness: 3.1,
+      newKerf: 0.27,
       material: "Acrylic"
     };
   },
+  mounted() {
+    this.newThickness = this.thickness;
+    this.newKerf = this.kerf;
+  },
   methods: {
     applyParams: function() {
-      axios
-        .get("http://localhost:5000/parameters", {
-          params: {
-            kerf: this.kerf,
-            material: this.material,
-            thickness: this.thickness
-          }
-        })
-        .then(response => this.$emit("outsvg", response.data));
+      const floatThickness = parseFloat(this.newThickness);
+      const floatKerf = parseFloat(this.newKerf);
+      this.$emit("update", {
+        thickness: floatThickness,
+        kerf: floatKerf
+      });
       return;
     }
   }

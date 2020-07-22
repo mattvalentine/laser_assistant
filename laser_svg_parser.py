@@ -7,7 +7,7 @@ import json
 
 from laser_svg_utils import (element_to_tree, get_attributes, new_svg_tree,
                              path_string_to_element, tree_to_file)
-from laser_path_utils import tree_to_paths, combine_paths
+from laser_path_utils import tree_to_paths, combine_paths, is_inside
 
 
 def parse_svg_tree(svg_root, attrib):
@@ -32,39 +32,7 @@ def parse_svg_tree(svg_root, attrib):
 
 
 def parse_svgfile(filename):
-    """
-    Read joints and shapes from specially formatted SVG file.
-
-    For Example:
-
-        SVG:
-            Faces:
-                Face1:
-                    Perimeter:
-                        Path
-                    Cuts:
-                        Path
-                        Path
-                Face2:
-                    Perimeter:
-                        Path
-                    Cuts:
-                        Path
-                Face3:
-                    Perimeter:
-                        Path
-            Joints:
-                Joint1:
-                    A:
-                        Path (Line only)
-                    B:
-                        Path (Line only)
-                Joint2:
-                    A:
-                        Path (Line only)
-                    B:
-                        Path (Line only)
-    """
+    """Read joints and shapes from specially formatted SVG file."""
     svg_data = {}
     tree = ET.parse(filename)
     attrib = get_attributes(tree)
@@ -133,6 +101,25 @@ def model_to_svg_file(model, filename="output.svg"):
     """Outputs model to SVG file"""
     svg_tree = model_to_svg_tree(model)
     tree_to_file(svg_tree, filename=filename)
+
+
+def separate_perims_from_cuts(paths):
+    """take a list of paths and returns two lists of paths faces and cuts."""
+    perims = []
+    cuts = []
+
+    for path in paths:
+        inside = False
+        for other_path in paths:
+            if other_path is not path:
+                if is_inside(path, other_path):
+                    inside = True
+        if inside:
+            cuts.append(path)
+        else:
+            perims.append(path)
+
+    return perims, cuts
 
 
 if __name__ == "__main__":
