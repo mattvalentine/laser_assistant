@@ -89,17 +89,24 @@ def get_processed(tree, parameters):
         f"stroke-linejoin:round;stroke-width:0.25px"
 
     for face, shapes in tree.items():
-        if face.startswith('Face'):
+        if face.startswith('face'):
             original = shapes['Original']['paths']
             joints = []
-            for joint, edge in shapes['Joints'].items():
-                if joint.startswith('J'):
-                    processed_edge = process_edge(joint[-1], edge, parameters)
-                    joints.append(processed_edge)
+            if 'Joints' in shapes:
+                for joint, edge in shapes['Joints'].items():
+                    if joint.startswith('J'):
+                        # print(joint)
+                        processed_edge = process_edge(
+                            joint[-1], edge, parameters)
+                        joints.append(processed_edge)
 
-            tree[face]['Processed'] = {
-                'paths': subtract_geometry(original, joints),
-                'style': processed_style}
+                tree[face]['Processed'] = {
+                    'paths': subtract_geometry(original, joints),
+                    'style': processed_style}
+            else:
+                tree[face]['Processed'] = {
+                    'paths': original,
+                    'style': processed_style}
     return tree
 
 
@@ -118,7 +125,7 @@ def get_single_kerf(tree, parameters):
         f"stroke-width:0.5px;stroke-linecap:round;stroke-opacity:0.5"
     for face, shapes in tree.items():
         if face.startswith('face'):
-            original = shapes['Original']['paths']
+            original = shapes['Processed']['paths']
             kerf_path = get_kerf(original, kerf_size)
             tree[face]['Kerf'] = {
                 'paths': kerf_path,
@@ -181,7 +188,7 @@ def process_web_design(design_model, parameters):
     # thickness = parameters['thickness']
 
     segments = 5
-    joint_type = 'tslot'
+    joint_type = 'box'
     if joint_type == 'box':
         generator = BoxJoint
     elif joint_type == 'tslot':
@@ -205,12 +212,11 @@ def process_web_design(design_model, parameters):
     parameters['x_clearance'] = clearance
     parameters['y_clearance'] = clearance
     parameters['bolts_per_side'] = bolts_per_side
-    # design_model = process_design(design_model, parameters)
 
     design_model['tree'] = get_original(design_model['tree'])
-    # TODO: process joints + modify kerf processing
+    design_model = add_joints(design_model)
+    design_model['tree'] = get_processed(design_model['tree'], parameters)
     design_model['tree'] = get_single_kerf(design_model['tree'], parameters)
-    # print(design_model)
     return design_model
 
 
@@ -252,10 +258,14 @@ def get_edges(model):
 def add_joints(model):
     """adds joints to tree"""
     tree = model['tree']
-    # joints = model['joints']
-    # for joint in joints:
-    #     tree[joint['face']]['Joints'] =
-    return tree
+    joints = model['joints']
+    for joint in joints:
+        new_edge = {"paths": [joints[joint]['path']]}
+        if 'Joints' not in tree[joints[joint]['face']]:
+            tree[joints[joint]['face']]['Joints'] = {}
+        tree[joints[joint]['face']]['Joints'][joint] = new_edge
+    model['tree'] = tree
+    return model
 
 
 def svg_to_combined_paths(filename):
