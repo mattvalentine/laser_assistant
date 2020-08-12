@@ -24,7 +24,8 @@ def tree_to_paths(tree):
     paths, _ = tempfile_to_paths(temp_svg)
     svg_paths = []
     for path in paths:
-        svg_paths.append(path.d())
+        if(len(path) > 0):
+            svg_paths.append(path.d())
     return svg_paths
 
 
@@ -94,8 +95,9 @@ def points_from_line(line):
 def points_from_curve(curve, samples=20):
     """returns poins along a curve"""
     points_list = []
-    for location in range(samples + 1):
-        point_on_curve = curve.point(location)
+    for location in range(samples):
+        fraction = location / (samples-1)
+        point_on_curve = curve.point(fraction)
         points_list.append(complex_to_xy(point_on_curve))
     return points_list
 
@@ -365,11 +367,3 @@ def path_to_segments(path_string):
             new_path_string = f"M {points[0][0]} {points[0][1]} L {points[1][0]} {points[1][1]}"
             segments.append(new_path_string)
     return segments
-
-
-if __name__ == "__main__":
-    PATHS, ATTRIB = SVGPT.svg2paths("input-samples/test9-01.svg")
-    PATH_STRINGS = []
-    for apath in PATHS:
-        PATH_STRINGS.append(apath.d())
-    print(PATH_STRINGS)

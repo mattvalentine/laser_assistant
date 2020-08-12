@@ -13,10 +13,13 @@ from laser_path_utils import tree_to_paths, combine_paths, is_inside
 def parse_svg_tree(svg_root, attrib):
     """Recursive SVG parser"""
     svg_data = {}
+    blank_index = 1
     for item in svg_root:
         if item.tag.endswith("/svg}g"):
             if 'data-name' not in item.attrib:
-                item.attrib['data-name'] = item.attrib['id']
+                item.attrib['data-name'] = f"blank{blank_index}"
+                blank_index += 1
+                # item.attrib['data-name'] = item.attrib['id']
             name = item.attrib['data-name']
             svg_data[name] = parse_svg_tree(item, attrib)
         else:

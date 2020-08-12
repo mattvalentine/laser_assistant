@@ -291,17 +291,9 @@ def paths_to_faces(paths):
 
 
 if __name__ == "__main__":
-    # from laser_cmd_parser import parse_command
-    # from laser_svg_parser import parse_svgfile, model_to_svg_file, separate_perims_from_cuts
+    from laser_cmd_parser import parse_command
 
-    # IN_FILE, OUT_FILE, PARAMETERS = parse_command()
-    # DESIGN = parse_svgfile(IN_FILE)
-    # OUTPUT = process_design(DESIGN, PARAMETERS)
-    # model_to_svg_file(OUTPUT, filename=OUT_FILE)
-
-    # FILENAME = "input-samples/test8-01.svg"
-    # FILENAME = "input-samples/test9-01.svg"
-    FILENAME = "input-samples/100_x_100_x_345_drawer_alt.svg"
-    MODEL = svg_to_model(FILENAME)
-    print(MODEL)
-    model_to_svg_file(MODEL)
+    IN_FILE, OUT_FILE, PARAMETERS = parse_command()
+    DESIGN = parse_svgfile(IN_FILE)
+    OUTPUT = process_design(DESIGN, PARAMETERS)
+    model_to_svg_file(OUTPUT, filename=OUT_FILE)
