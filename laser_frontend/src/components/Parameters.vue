@@ -22,7 +22,7 @@
       <br />
       <input name="kerf" v-model="newKerf" type="number" step="0.01" @change="applyParams" />
     </p>
-    <button @click="applyParams">Apply</button>
+    <button @click="downloadsvg">Download</button>
   </div>
 </template>
 
@@ -32,11 +32,11 @@
 export default {
   name: "Parameters",
   props: ["thickness", "kerf"],
-  data: function() {
+  data: function () {
     return {
       newThickness: 3.1,
       newKerf: 0.27,
-      material: "Acrylic"
+      material: "Acrylic",
     };
   },
   mounted() {
@@ -44,16 +44,19 @@ export default {
     this.newKerf = this.kerf;
   },
   methods: {
-    applyParams: function() {
+    applyParams: function () {
       const floatThickness = parseFloat(this.newThickness);
       const floatKerf = parseFloat(this.newKerf);
       this.$emit("update", {
         thickness: floatThickness,
-        kerf: floatKerf
+        kerf: floatKerf,
       });
       return;
-    }
-  }
+    },
+    downloadsvg: function () {
+      this.$emit("download");
+    },
+  },
 };
 </script>
 

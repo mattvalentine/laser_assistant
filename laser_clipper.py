@@ -8,8 +8,21 @@ import pyclipper
 SCALING_FACTOR = 1000
 
 
+def merge_loops(loops):
+    """merges multiple loops into a union"""
+    if len(loops) < 1:
+        return (loops)
+    print(loops)
+    union = [loops[0]]
+    for loopindex in range(len(loops)):
+        union = get_union(union, [loops[loopindex]])
+    return union
+
+
 def get_difference(first, second):
     """Takes two list of loops (list of (x,y) points), and returns the difference"""
+    second = merge_loops(second)
+
     clipper = pyclipper.Pyclipper()
     scaled_first = pyclipper.scale_to_clipper(first, SCALING_FACTOR)
     scaled_second = pyclipper.scale_to_clipper(second, SCALING_FACTOR)

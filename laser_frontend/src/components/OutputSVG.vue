@@ -1,11 +1,11 @@
 <template>
-  <div class="output model" v-html="outsvg"></div>
+  <div id="outputsvg" class="output model" v-html="outsvg"></div>
 </template>
 
 <script>
 export default {
   name: "OutputSVG",
-  props: ["outsvg"]
+  props: ["outsvg"],
 };
 </script>
 

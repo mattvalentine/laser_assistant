@@ -7,6 +7,7 @@
       v-on:update="updateParams"
       :thickness="laserParams.thickness"
       :kerf="laserParams.kerf"
+      @download="downloadsvg"
     />
     <LoadSVG v-if="!svgLoaded" v-on:insvg="loadSVG" />
   </div>
@@ -89,6 +90,15 @@ export default {
       }
 
       this.updateOutput();
+    },
+    downloadsvg: function () {
+      const link = document.createElement("a");
+      const outsvg = document.getElementById("outputsvg").childNodes[0];
+      const svgblob = new Blob([outsvg.outerHTML], { type: "image/svg+xml" });
+
+      link.download = "output.svg";
+      link.href = URL.createObjectURL(svgblob);
+      link.click();
     },
   },
 };
