@@ -62,11 +62,11 @@ export default {
 
 <style scoped>
 .params {
-  grid-column: 4 / 5;
-  grid-row: 1;
+  grid-area: panel;
   background-color: lightgrey;
-  margin: 1vmin;
-  padding: 1vmin;
-  border-radius: 2vmin;
+  margin: 10px;
+  padding: 10px;
+  border-radius: 10px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
 }
 </style>

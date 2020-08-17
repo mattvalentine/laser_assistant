@@ -86,9 +86,19 @@ def model_to_svg_tree(model):
     svg_tree = new_svg_tree(attrib)
     svg_root = svg_tree.getroot()
 
+    embed_model(model, svg_tree)
+
     tree_to_svg(dict_tree, svg_root)
 
     return svg_tree
+
+
+def embed_model(model, tree):
+    """embeds a model in an svg tree as metadata"""
+    root = tree.getroot()
+    metadata = ET.Element("metadata")
+    ET.SubElement(metadata, "laserassistant", {"model": model})
+    root.append(metadata)
 
 
 def model_to_json(model, filename="", indent=None):

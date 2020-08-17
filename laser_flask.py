@@ -4,10 +4,12 @@
 # export FLASK_APP=laser_flask.py
 # flask run
 
+
 import json
 
+from flask_cors import CORS
+
 from flask import Flask, request, redirect, jsonify
-# from flask_cors import CORS
 
 from laser_assistant import svg_to_model, model_to_svg_file, process_web_design
 
@@ -16,11 +18,11 @@ VUE_STATIC = "./laser_frontend/dist/"
 
 # it's common practice to use lowercase app, so we'll ignore pep8 just this once
 app = Flask(__name__, static_folder=VUE_STATIC)  # pylint: disable=invalid-name
-# app.config['CORS_HEADERS'] = 'Content-Type'
 
 # Allow VUE client to make requests to this API server
 VUE_CLIENT = {"origins": "*"}
-# cors = CORS(app, resources={r"*": VUE_CLIENT})  # pylint: disable=invalid-name
+app.config['CORS_HEADERS'] = 'Content-Type'
+cors = CORS(app, resources={r"*": VUE_CLIENT})  # pylint: disable=invalid-name
 
 
 @app.route('/')
