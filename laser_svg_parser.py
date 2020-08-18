@@ -97,7 +97,7 @@ def embed_model(model, tree):
     """embeds a model in an svg tree as metadata"""
     root = tree.getroot()
     metadata = ET.Element("metadata")
-    ET.SubElement(metadata, "laserassistant", {"model": model})
+    ET.SubElement(metadata, "laserassistant", {"model": json.dumps(model)})
     root.append(metadata)
 
 

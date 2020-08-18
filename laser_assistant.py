@@ -1,5 +1,7 @@
 # laser_assistant.py
 """A tool to generate joints for laser cutting"""
+import xml.etree.ElementTree as ET
+import json
 
 from laser_path_utils import (get_length, get_start, get_angle,
                               move_path, rotate_path,
@@ -222,6 +224,35 @@ def process_web_design(design_model, parameters):
 
 def svg_to_model(filename):
     """converts svg file to design model"""
+    model = extract_embeded_model(filename)
+    if model is None:
+        print("no model found")
+        model = model_from_raw_svg(filename)
+    return model
+
+
+def extract_embeded_model(filename):
+    """extracts embeded model if there is one in metadata"""
+    model = None
+    tree = ET.parse(filename)
+    # ET.register_namespace('http://www.w3.org/2000/svg')
+    root = tree.getroot()
+    print(root.tag)
+
+    for metadata in root.findall('{http://www.w3.org/2000/svg}metadata'):
+        print("metadata")
+        for child in metadata.getchildren():
+            print(child.tag)
+        lasermetadata = metadata.find(
+            '{http://www.w3.org/2000/svg}laserassistant')
+        if lasermetadata is not None:
+            print("found metadata ", lasermetadata.attrib['model'])
+            model = json.loads(lasermetadata.attrib['model'])
+    return model
+
+
+def model_from_raw_svg(filename):
+    """creates a new model from a raw svg file without metadata"""
     svg_data = parse_svgfile(filename)
     combined_path = svg_to_combined_paths(filename)
     closed_paths, open_paths = separate_closed_paths([combined_path])
