@@ -9,7 +9,7 @@
     <p>
       Material
       <br />
-      <select name="material" v-model="material">
+      <select name="material" v-model="newMaterial" @change="applyParams">
         <option disabled value>Please select one</option>
         <option>Wood</option>
         <option>Acrylic</option>
@@ -18,7 +18,7 @@
     </p>
 
     <p>
-      Kerf Radius (mm):
+      Kerf (mm):
       <br />
       <input name="kerf" v-model="newKerf" type="number" step="0.01" @change="applyParams" />
     </p>
@@ -31,17 +31,18 @@
 
 export default {
   name: "Parameters",
-  props: ["thickness", "kerf"],
+  props: ["thickness", "kerf", "material"],
   data: function () {
     return {
       newThickness: 3.1,
       newKerf: 0.27,
-      material: "Acrylic",
+      newMaterial: "Wood",
     };
   },
   mounted() {
     this.newThickness = this.thickness;
     this.newKerf = this.kerf;
+    this.newMaterial = this.material;
   },
   methods: {
     applyParams: function () {
@@ -50,6 +51,7 @@ export default {
       this.$emit("update", {
         thickness: floatThickness,
         kerf: floatKerf,
+        material: this.newMaterial,
       });
       return;
     },
@@ -63,7 +65,7 @@ export default {
 <style scoped>
 .params {
   grid-area: panel;
-  background-color: lightgrey;
+  background-color: #d2d8de;
   margin: 10px;
   padding: 10px;
   border-radius: 10px;

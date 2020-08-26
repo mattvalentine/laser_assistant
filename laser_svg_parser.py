@@ -72,7 +72,7 @@ def tree_to_svg(tree_dict, svg_root):
             path_from_dict(tree_dict, svg_root)
 
 
-def model_to_svg_tree(model):
+def model_to_svg_tree(model, design=None):
     """Convert dictionary model with tree + attrib into SVG XML"""
     assert isinstance(model, dict)
     assert 'tree' in model
@@ -86,7 +86,9 @@ def model_to_svg_tree(model):
     svg_tree = new_svg_tree(attrib)
     svg_root = svg_tree.getroot()
 
-    embed_model(model, svg_tree)
+    if design is None:
+        design = model
+    embed_model(design, svg_tree)
 
     tree_to_svg(dict_tree, svg_root)
 
@@ -110,9 +112,9 @@ def model_to_json(model, filename="", indent=None):
     return json_model
 
 
-def model_to_svg_file(model, filename="output.svg"):
+def model_to_svg_file(model, design=None, filename="output.svg"):
     """Outputs model to SVG file"""
-    svg_tree = model_to_svg_tree(model)
+    svg_tree = model_to_svg_tree(model, design=design)
     tree_to_file(svg_tree, filename=filename)
 
 

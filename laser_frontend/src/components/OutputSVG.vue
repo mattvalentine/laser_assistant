@@ -11,12 +11,7 @@ export default {
 
 <style>
 .output {
-  /* grid-column: 1 / 4;
-  grid-row: 1;
-  display: grid;
-  align-items: center; */
-  z-index: 0;
-  /* width: 100%; */
+  z-index: 1;
 }
 
 .output > svg {

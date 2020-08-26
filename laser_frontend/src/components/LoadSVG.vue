@@ -9,7 +9,7 @@
       @change="loadFile"
     />
     <div class="buttonholder" @click="passClick">
-      <span class="loadlabel">Select file</span>
+      <span class="loadlabel">Upload SVG File</span>
     </div>
   </div>
 </template>

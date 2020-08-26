@@ -12,7 +12,6 @@ def merge_loops(loops):
     """merges multiple loops into a union"""
     if len(loops) < 1:
         return (loops)
-    print(loops)
     union = [loops[0]]
     for loopindex in range(len(loops)):
         union = get_union(union, [loops[loopindex]])

@@ -1,17 +1,13 @@
 """Flask server to host UI"""
 
-# Run with these commands:
-# export FLASK_APP=laser_flask.py
-# flask run
-
-
 import json
 
 from flask_cors import CORS
 
 from flask import Flask, request, redirect, jsonify
 
-from laser_assistant import svg_to_model, model_to_svg_file, process_web_design
+from laser_assistant import (svg_to_model, model_to_svg_file,
+                             get_original_model, process_web_outputsvg)
 
 # tell flask to host the front end
 VUE_STATIC = "./laser_frontend/dist/"
@@ -32,6 +28,17 @@ def main_interface():
     return redirect('index.html')
 
 
+@app.route('/get_design', methods=['GET', 'POST'])
+def get_design():
+    """returns design.svg"""
+    if request.method == 'POST':
+        model = json.loads(request.form['inputModel'])
+        # params = json.loads(request.form['laserParams'])
+        new_model = get_original_model(model)
+        model_to_svg_file(new_model, design=model, filename="design.svg")
+    return get_svg_response('design.svg')
+
+
 @app.route('/get_output', methods=['GET', 'POST'])
 def get_output():
     """returns output.svg"""
@@ -40,8 +47,8 @@ def get_output():
         model = json.loads(request.form['inputModel'])
         params = json.loads(request.form['laserParams'])
         # print(model['joints'])
-        new_model = process_web_design(model, params)
-        model_to_svg_file(new_model)
+        new_model = process_web_outputsvg(model, params)
+        model_to_svg_file(new_model, design=model)
     return get_svg_response('output.svg')
 
 

@@ -9,15 +9,21 @@ from laser_path_utils import (get_length, get_start, get_angle,
                               paths_to_loops, loops_to_paths,
                               separate_closed_paths, is_inside,
                               path_to_segments)
-from laser_clipper import get_difference, get_offset_loop
+from laser_clipper import get_difference, get_offset_loop, get_union
 import svgpathtools.svgpathtools as SVGPT
 from laser_svg_parser import separate_perims_from_cuts, parse_svgfile, model_to_svg_file
-from joint_generators import FlatJoint, BoxJoint, TslotJoint
+# from joint_generators import FlatJoint, BoxJoint, TslotJoint
 
 
-def make_blank_model():
+def make_blank_model(attrib=None):
     """Make a valid blank model"""
-    model = {'tree': {}, 'attrib': {}}
+    if attrib is None:
+        attrib = {}
+    if "id" in attrib:
+        del attrib['id']
+    attrib['xmlns'] = "http://www.w3.org/2000/svg"
+
+    model = {'tree': {}, 'attrib': attrib}
     return model
 
 
@@ -59,12 +65,45 @@ def subtract_geometry(perimeters, cuts):
     return differnce
 
 
-def get_original(tree):
-    """returns paths of original and target geometry"""
-    original_style = "fill:#000000;fill-opacity:0.1;stroke:#000000;" + \
-        f"stroke-linejoin:round;stroke-width:0px;display:None"
+def combine_geometry(first, second):
+    """combines two path lists"""
+    first_loops = paths_to_loops(first)
+    second_loops = paths_to_loops(second)
+    combined_loops = get_union(first_loops, second_loops)
+    combined = loops_to_paths(combined_loops)
+    # differnce = loops_to_paths(cuts_loops)
+    return combined
 
-    for face, shapes in tree.items():
+# def get_original(tree):
+#     """returns paths of original and target geometry"""
+#     original_style = "fill:#00ff00;fill-opacity:0.1;stroke:#000000;" + \
+#         f"stroke-linejoin:round;stroke-width:0px"
+
+#     for face, shapes in tree.items():
+#         if face.startswith('face'):
+#             perimeters = []
+#             perimeter_paths = shapes['Perimeter']['paths']
+#             for path in perimeter_paths:
+#                 perimeters.append(path)
+#             cuts = []
+#             cut_paths = shapes['Cuts']['paths']
+#             if cut_paths != []:
+#                 for path in cut_paths:
+#                     cuts.append(path)
+#                 tree[face]['Original'] = {
+#                     'paths': subtract_geometry(perimeters, cuts),
+#                     'style': original_style}
+#             else:
+#                 tree[face]['Original'] = {
+#                     'paths': perimeters,
+#                     'style': original_style}
+#     return tree
+
+
+def get_original_tree(model):
+    """returns paths (zero stroke with green fill) of original model"""
+    tree = {}
+    for face, shapes in model['tree'].items():
         if face.startswith('face'):
             perimeters = []
             perimeter_paths = shapes['Perimeter']['paths']
@@ -75,64 +114,210 @@ def get_original(tree):
             if cut_paths != []:
                 for path in cut_paths:
                     cuts.append(path)
-                tree[face]['Original'] = {
-                    'paths': subtract_geometry(perimeters, cuts),
-                    'style': original_style}
+                tree[face] = {
+                    'paths': subtract_geometry(perimeters, cuts)}
             else:
-                tree[face]['Original'] = {
-                    'paths': perimeters,
-                    'style': original_style}
+                tree[face] = {
+                    'paths': perimeters}
     return tree
 
 
-def get_processed(tree, parameters):
-    """returns paths of original and target geometry"""
-    processed_style = "fill:#00ff00;fill-opacity:0.1;stroke:#00ff00;" + \
-        f"stroke-linejoin:round;stroke-width:0.25px"
+def process_joints(model, joints, parameters):
+    """takes in model of paces and returns modified model with joints applied"""
+    print(joints)
+    print(parameters)
+    for jointname, joint in joints.items():
+        extensions = get_joint_adds(joint, model, parameters)
+        print(jointname, extensions)
+        for face, extension in extensions.items():
+            model['tree'][face]['paths'] = combine_geometry(
+                model['tree'][face]['paths'], extension)
 
-    for face, shapes in tree.items():
+    for jointname, joint in joints.items():
+        cuts = get_joint_cuts(joint, model, parameters)
+        print(jointname, cuts)
+        for face, cut in cuts.items():
+            model['tree'][face]['paths'] = subtract_geometry(
+                model['tree'][face]['paths'], cut)
+    return model
+
+
+def get_box_joint_cuts(joint, model, parameters):
+    """generator for box joints"""
+    cuts = {}
+    fits = {'Wood': {'Clearance': 0, 'Friction': 1, 'Press': 2},
+            'Acrylic': {'Clearance': 0, 'Friction': 0.1, 'Press': 0.2}}
+    patha = joint['edge_a']['d']
+    pathb = joint['edge_b']['d']
+    facea = joint['edge_a']['face']
+    faceb = joint['edge_b']['face']
+    lengtha = get_length(patha)
+    lengthb = get_length(pathb)
+    tabsize = joint['joint_parameters']['tabsize']
+    tabspace = joint['joint_parameters']['tabspace']
+    tabnum = joint['joint_parameters']['tabnum']
+    thickness = parameters['thickness']
+    fit = fits[parameters['material']][joint['joint_parameters']['fit']]
+    offseta = (lengtha - (tabsize * tabnum) - (tabspace * (tabnum - 1))) / 2
+    offsetb = (lengthb - ((tabsize + fit) * tabnum) -
+               ((tabspace - fit) * (tabnum - 1))) / 2
+
+    cuta = f""
+    position = 0
+    step = offseta
+    for _ in range(tabnum):
+        position = position + step
+        cuta += f"M {position} {0} " + \
+                f"L {position} {thickness}" + \
+                f"L {position + tabsize} {thickness}" + \
+                f"L {position + tabsize} {0} Z "
+        step = tabsize + tabspace
+
+    cutb = f"M {0} {0} " + f"L {0} {thickness} " + \
+           f"L {offsetb} {thickness} " + f"L {offsetb} {0} Z "
+    position = offsetb
+    step = tabsize + tabspace
+    for _ in range(tabnum - 1):
+        cutb += f"M {position+tabsize} {0} " + f"L {position+tabsize} {thickness} " + \
+                f"L {position+tabsize+fit+tabspace} {thickness} " + \
+                f"L {position+tabsize+fit+tabspace} {0} Z "
+        position = position + step
+    position = position + tabsize
+    cutb += f"M {position} {0} " + f"L {position} {thickness} " + \
+            f"L {lengthb} {thickness} " + f"L {lengthb} {0} Z "
+
+    cuts[facea] = [place_new_edge_path(cuta, patha)]
+    cuts[faceb] = [place_new_edge_path(cutb, pathb)]
+
+    return cuts
+
+
+def get_tabslot_joint_adds(joint, model, parameters):
+    """generator for tabslot joints"""
+    adds = {}
+    patha = joint['edge_a']['d']
+    pathb = joint['edge_b']['d']
+    facea = joint['edge_a']['face']
+    faceb = joint['edge_b']['face']
+    lengtha = get_length(patha)
+    lengthb = get_length(pathb)
+    thickness = parameters['thickness']
+
+    adda = f"M {0} {0} "+f"L {0} {-thickness} " + \
+        f"L {lengtha} {-thickness} "+f"L {lengtha} {0}"
+    # addb = f"M {0} {0} "+f"L {0} {-thickness} " + \
+    #     f"L {lengthb} {-thickness} "+f"L {lengthb} {0}"
+
+    adds[facea] = [place_new_edge_path(adda, patha)]
+    # adds[faceb] = [place_new_edge_path(addb, pathb)]
+
+    return adds
+
+
+def get_tabslot_joint_cuts(joint, model, parameters):
+    """generator for tabslot joints"""
+    cuts = {}
+    fits = {'Wood': {'Clearance': 0, 'Friction': 1, 'Press': 2},
+            'Acrylic': {'Clearance': 0, 'Friction': 0.1, 'Press': 0.2}}
+    patha = joint['edge_a']['d']
+    pathb = joint['edge_b']['d']
+    facea = joint['edge_a']['face']
+    faceb = joint['edge_b']['face']
+    lengtha = get_length(patha)
+    lengthb = get_length(pathb)
+    tabsize = joint['joint_parameters']['tabsize']
+    tabspace = joint['joint_parameters']['tabspace']
+    tabnum = joint['joint_parameters']['tabnum']
+    thickness = parameters['thickness']
+    fit = fits[parameters['material']][joint['joint_parameters']['fit']]
+    offseta = (lengtha - (tabsize * tabnum) - (tabspace * (tabnum - 1))) / 2
+    offsetb = (lengthb - ((tabsize + fit) * tabnum) -
+               ((tabspace - fit) * (tabnum - 1))) / 2
+
+    cuta = f""
+    position = 0
+    step = offseta
+    for _ in range(tabnum):
+        position = position + step
+        cuta += f"M {position} {0} " + \
+                f"L {position} {thickness}" + \
+                f"L {position + tabsize} {thickness}" + \
+                f"L {position + tabsize} {0} Z "
+        step = tabsize + tabspace
+
+    cutb = f"M {0} {0} " + f"L {0} {thickness} " + \
+           f"L {offsetb} {thickness} " + f"L {offsetb} {0} Z "
+    position = offsetb
+    step = tabsize + tabspace
+    for _ in range(tabnum - 1):
+        cutb += f"M {position+tabsize} {0} " + f"L {position+tabsize} {thickness} " + \
+                f"L {position+tabsize+fit+tabspace} {thickness} " + \
+                f"L {position+tabsize+fit+tabspace} {0} Z "
+        position = position + step
+    position = position + tabsize
+    cutb += f"M {position} {0} " + f"L {position} {thickness} " + \
+            f"L {lengthb} {thickness} " + f"L {lengthb} {0} Z "
+
+    cuts[facea] = [place_new_edge_path(cuta, patha)]
+    cuts[faceb] = [place_new_edge_path(cutb, pathb)]
+
+    return cuts
+
+
+def get_joint_adds(joint, model, parameters):
+    """process a single joint"""
+    jointtype = joint['joint_parameters']['joint_type']
+    addfunc = {'Tab-and-Slot': get_tabslot_joint_adds}
+    adds = addfunc.get(jointtype, lambda j, m, c: {})(joint, model, parameters)
+    return adds
+
+
+def get_joint_cuts(joint, model, parameters):
+    """process a single joint"""
+    jointtype = joint['joint_parameters']['joint_type']
+    cutfunc = {'Box': get_box_joint_cuts,
+               'Tab-and-Slot': get_tabslot_joint_cuts}
+    cuts = cutfunc.get(jointtype, lambda j, m, c: {})(joint, model, parameters)
+    return cuts
+
+
+def kerf_offset(model, parameters):
+    """Applies a kerf offset based upon material and laser parameters"""
+    kerf_size = parameters['kerf']
+    original_tree = model['tree']
+    tree = {}
+    for face, shapes in original_tree.items():
         if face.startswith('face'):
-            original = shapes['Original']['paths']
-            joints = []
-            if 'Joints' in shapes:
-                for joint, edge in shapes['Joints'].items():
-                    if joint.startswith('J'):
-                        # print(joint)
-                        processed_edge = process_edge(
-                            joint[-1], edge, parameters)
-                        joints.append(processed_edge)
+            original = shapes['paths']
+            kerf_path = get_kerf(original, kerf_size)
+            tree[face] = {
+                'paths': kerf_path}
 
-                tree[face]['Processed'] = {
-                    'paths': subtract_geometry(original, joints),
-                    'style': processed_style}
-            else:
-                tree[face]['Processed'] = {
-                    'paths': original,
-                    'style': processed_style}
     return tree
+
+
+def get_processed_model(model, parameters):
+    """returns model containing paths of target geometry for each face"""
+
+    output_model = make_blank_model(model['attrib'])
+    # output_model['attrib'] = model['attrib']
+
+    original_model = get_original_model(model)
+    processed_model = process_joints(
+        original_model, model['joints'], parameters)
+    output_model['tree'] = kerf_offset(processed_model, parameters)
+
+    return output_model
 
 
 def get_kerf(paths, kerf_size):
-    """calculate kerf compensated path"""
+    """calculate kerf compensated path using PyClipper"""
+    # PyClipper understands loops not paths
     loops = paths_to_loops(paths)
-    kerf_loops = get_offset_loop(loops, kerf_size / 2)
+    kerf_loops = get_offset_loop(loops, kerf_size)
+    # change back into paths for output
     kerf_paths = loops_to_paths(kerf_loops)
     return kerf_paths
-
-
-def get_single_kerf(tree, parameters):
-    """doesn't worry about inside vs outside"""
-    kerf_size = parameters['kerf']
-    kerf_style = f"fill:none;stroke:#ff0000;stroke-linejoin:round;" + \
-        f"stroke-width:0.5px;stroke-linecap:round;stroke-opacity:0.5"
-    for face, shapes in tree.items():
-        if face.startswith('face'):
-            original = shapes['Processed']['paths']
-            kerf_path = get_kerf(original, kerf_size)
-            tree[face]['Kerf'] = {
-                'paths': kerf_path,
-                'style': kerf_style}
-    return tree
 
 
 def get_outside_kerf(tree, parameters):
@@ -175,58 +360,30 @@ def get_inside_kerf(tree, parameters):
     return tree
 
 
-def process_design(design_model, parameters):
-    """process design and parameters to produce output"""
-    design_model['tree'] = get_original(design_model['tree'])
-    design_model['tree'] = get_processed(design_model['tree'], parameters)
-    design_model['tree'] = get_outside_kerf(design_model['tree'], parameters)
-    design_model['tree'] = get_inside_kerf(design_model['tree'], parameters)
-    return design_model
+def process_web_outputsvg(design_model, parameters):
+    """process joints and offset kerf"""
+    # Processing:
+    output_model = get_processed_model(design_model, parameters)
+    # Styling:
+    output_model['attrib']['style'] = f"fill:none;stroke:#ff0000;stroke-linejoin:round;" + \
+        f"stroke-width:0.1px;stroke-linecap:round;stroke-opacity:0.5"
+
+    return output_model
 
 
-def process_web_design(design_model, parameters):
+def get_original_model(input_model):
     """process simple kerf offset"""
-    kerf = parameters['kerf']
-    # thickness = parameters['thickness']
-
-    segments = 5
-    joint_type = 'box'
-    if joint_type == 'box':
-        generator = BoxJoint
-    elif joint_type == 'tslot':
-        generator = TslotJoint
-    else:
-        generator = FlatJoint
-
-    tsize = 'M2.5'
-    bolt_length = 20.0
-    clearance = 1.5
-    bolts_per_side = segments
-
-    parameters['segments'] = segments
-    parameters['fast_kerf'] = kerf*1.2
-    parameters['slow_kerf'] = kerf
-    parameters['type'] = joint_type
-    parameters['generator'] = generator
-    parameters['tsize'] = tsize
-    parameters['bolt_length'] = bolt_length
-    parameters['clearance'] = clearance
-    parameters['x_clearance'] = clearance
-    parameters['y_clearance'] = clearance
-    parameters['bolts_per_side'] = bolts_per_side
-
-    design_model['tree'] = get_original(design_model['tree'])
-    design_model = add_joints(design_model)
-    design_model['tree'] = get_processed(design_model['tree'], parameters)
-    design_model['tree'] = get_single_kerf(design_model['tree'], parameters)
-    return design_model
+    output_model = make_blank_model(input_model['attrib'])
+    # output_model['attrib'] = input_model['attrib']
+    output_model['attrib']['style'] = "fill:#00ff00;fill-opacity:0.25;stroke:none"
+    output_model['tree'] = get_original_tree(input_model)
+    return output_model
 
 
 def svg_to_model(filename):
     """converts svg file to design model"""
     model = extract_embeded_model(filename)
     if model is None:
-        print("no model found")
         model = model_from_raw_svg(filename)
     return model
 
@@ -235,25 +392,21 @@ def extract_embeded_model(filename):
     """extracts embeded model if there is one in metadata"""
     model = None
     tree = ET.parse(filename)
-    # ET.register_namespace('http://www.w3.org/2000/svg')
     root = tree.getroot()
-    print(root.tag)
 
     for metadata in root.findall('{http://www.w3.org/2000/svg}metadata'):
-        print("metadata")
-        for child in metadata.getchildren():
-            print(child.tag)
         lasermetadata = metadata.find(
             '{http://www.w3.org/2000/svg}laserassistant')
         if lasermetadata is not None:
-            print("found metadata ", lasermetadata.attrib['model'])
             model = json.loads(lasermetadata.attrib['model'])
     return model
 
 
 def model_from_raw_svg(filename):
     """creates a new model from a raw svg file without metadata"""
-    svg_data = parse_svgfile(filename)
+    svg_data = parse_svgfile(
+        filename)
+
     combined_path = svg_to_combined_paths(filename)
     closed_paths, open_paths = separate_closed_paths([combined_path])
     model = paths_to_faces(closed_paths)
@@ -262,11 +415,12 @@ def model_from_raw_svg(filename):
         model['tree']['Open Paths'] = {'paths': open_paths}
     model['joints'] = {}
     model['edge_data'] = get_edges(model)
+    model['joint_index'] = 1
     return model
 
 
 def get_edges(model):
-    """separates edges into individual segments"""
+    """separates perimeter into individual segments"""
     edge_data = {}
     edge_data['viewBox'] = model['attrib']['viewBox']
     edge_data['edges'] = []
@@ -319,12 +473,3 @@ def paths_to_faces(paths):
                 model['tree'][f"face{index+1}"]['Cuts']['paths'].append(cut)
 
     return model
-
-
-if __name__ == "__main__":
-    from laser_cmd_parser import parse_command
-
-    IN_FILE, OUT_FILE, PARAMETERS = parse_command()
-    DESIGN = parse_svgfile(IN_FILE)
-    OUTPUT = process_design(DESIGN, PARAMETERS)
-    model_to_svg_file(OUTPUT, filename=OUT_FILE)

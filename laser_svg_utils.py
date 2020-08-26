@@ -59,7 +59,8 @@ def tree_to_file(tree, filename="output.svg"):
 
 def path_string_to_element(path_string, style=""):
     """Create SVG Element from path string"""
-    if style == "":
-        style = "fill:none;stroke:#231f20;stroke-miterlimit:10;stroke-width:0.25px;opacity:5%"
-    svg_element = ET.Element('path', attrib={'d': path_string, 'style': style})
+    # if style == "":
+    # style = "fill:none;stroke:#231f20;stroke-miterlimit:10;stroke-width:0.25px;opacity:5%"
+    # svg_element = ET.Element('path', attrib={'d': path_string, 'style': style})
+    svg_element = ET.Element('path', attrib={'d': path_string})
     return svg_element
