@@ -37,19 +37,42 @@ export default {
       console.log(edge);
       return "Joint1";
     },
+    getOtherEdge: function (edge) {
+      const joints = Object.assign({}, this.joints);
+      const edge_path = edge.getAttribute("d");
+      for (const joint in joints) {
+        if (joints[joint].edge_a.d === edge_path) {
+          const otheredge = document.getElementById(
+            "edge" + joints[joint].edge_b.edge
+          );
+          return otheredge;
+        }
+        if (joints[joint].edge_b.d === edge_path) {
+          const otheredge = document.getElementById(
+            "edge" + joints[joint].edge_a.edge
+          );
+          return otheredge;
+        }
+      }
+      return false;
+    },
     edgeHover: function (event) {
       const edge = event.target;
-      const classnames = edge.className.baseVal;
       this.highlightEdge(edge);
-      if (classnames.indexOf("joint") >= 0) {
-        console.log("joint");
-        console.log(this.joints);
-        this.find_joint_from_edge(edge);
+      const otherEdge = this.getOtherEdge(edge);
+      if (otherEdge) {
+        console.log("found the joint", otherEdge);
+        this.highlightEdge(otherEdge);
       }
     },
     edgeUnhover: function (event) {
       const edge = event.target;
       this.unhighlightEdge(edge);
+      const otherEdge = this.getOtherEdge(edge);
+      if (otherEdge) {
+        console.log("found the joint", otherEdge);
+        this.unhighlightEdge(otherEdge);
+      }
     },
     highlightEdge: function (edge) {
       const classnames = edge.className.baseVal;
