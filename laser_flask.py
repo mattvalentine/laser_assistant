@@ -43,10 +43,8 @@ def get_design():
 def get_output():
     """returns output.svg"""
     if request.method == 'POST':
-        # print(request.form)
         model = json.loads(request.form['inputModel'])
         params = json.loads(request.form['laserParams'])
-        # print(model['joints'])
         new_model = process_web_outputsvg(model, params)
         model_to_svg_file(new_model, design=model)
     return get_svg_response('output.svg')
@@ -60,7 +58,6 @@ def get_model():
     svg_file.write(svg_input)
     svg_file.close()
     model = svg_to_model('input.svg')
-    # print(model)
     return jsonify(model)
 
 

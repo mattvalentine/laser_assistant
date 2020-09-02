@@ -24,6 +24,31 @@
       <input name="tabspace" v-model="jp.tabspace" type="number" step="1.0" />
       Number of Tabs
       <input name="tabnum" v-model="jp.tabnum" type="number" step="1" />
+      Bolt size
+      <select name="boltsize" v-model="jp.boltsize">
+        <option disabled value>Please select one</option>
+        <option>M2</option>
+        <option>M2.5</option>
+        <option>M3</option>
+        <option>M4</option>
+        <!-- <option>C</option> -->
+      </select>
+      Number of Bolts
+      <input name="boltnum" v-model="jp.boltnum" type="number" step="1" />
+      Space between Bolts
+      <input
+        name="boltspace"
+        v-model="jp.boltspace"
+        type="number"
+        step="0.1"
+      />
+      Bolt Length(mm)
+      <input
+        name="boltlength"
+        v-model="jp.boltlength"
+        type="number"
+        step="0.1"
+      />
       <div id="flipjoint">
         <button @click="flipjoint">Reverse Joint</button>
       </div>
@@ -54,6 +79,9 @@ export default {
       this.jp.tabsize = parseFloat(this.jp.tabsize);
       this.jp.tabspace = parseFloat(this.jp.tabspace);
       this.jp.tabnum = parseInt(this.jp.tabnum);
+      this.jp.boltnum = parseInt(this.jp.boltnum);
+      this.jp.boltspace = parseInt(this.jp.boltspace);
+      this.jp.boltlength = parseInt(this.jp.boltlength);
       this.$emit("confirm", this.jp);
     },
     flipjoint: function () {

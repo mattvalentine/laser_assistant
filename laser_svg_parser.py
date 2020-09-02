@@ -135,10 +135,3 @@ def separate_perims_from_cuts(paths):
             perims.append(path)
 
     return perims, cuts
-
-
-if __name__ == "__main__":
-    FILENAME = "input-samples/test6-01.svg"
-    MODEL = parse_svgfile(FILENAME)
-    print(model_to_json(MODEL, indent=2, filename="output.json"))
-    model_to_svg_file(MODEL)

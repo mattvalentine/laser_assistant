@@ -124,18 +124,18 @@ def get_original_tree(model):
 
 def process_joints(model, joints, parameters):
     """takes in model of paces and returns modified model with joints applied"""
-    print(joints)
-    print(parameters)
+    # print(joints)
+    # print(parameters)
     for jointname, joint in joints.items():
         extensions = get_joint_adds(joint, model, parameters)
-        print(jointname, extensions)
+        # print(jointname, extensions)
         for face, extension in extensions.items():
             model['tree'][face]['paths'] = combine_geometry(
                 model['tree'][face]['paths'], extension)
 
     for jointname, joint in joints.items():
         cuts = get_joint_cuts(joint, model, parameters)
-        print(jointname, cuts)
+        # print(jointname, cuts)
         for face, cut in cuts.items():
             model['tree'][face]['paths'] = subtract_geometry(
                 model['tree'][face]['paths'], cut)
@@ -311,26 +311,132 @@ def get_tabslot_joint_cuts(joint, model, parameters):
 def get_bolt_joint_cuts(joint, model, parameters):
     """generator for bolt joints"""
     cuts = {}
-    # fits = {'Wood': {'Clearance': 0, 'Friction': 1, 'Press': 2},
-    #         'Acrylic': {'Clearance': 0, 'Friction': 0.1, 'Press': 0.2}}
+
+    NUT_BOLT_SIZES = {'M2': {'nut_width': 3.3,
+                             'nut_height': 2.0,
+                             'bolt_diameter': 2},
+                      'M2.5': {'nut_width': 4.3,
+                               'nut_height': 2.0,
+                               'bolt_diameter': 2.5},
+                      'M3': {'nut_width': 5.5,
+                             'nut_height': 2.0,
+                             'bolt_diameter': 3.0},
+                      'M4': {'nut_width': 7.0,
+                             'nut_height': 2.0,
+                             'bolt_diameter': 4.0}}
+    CLEARANCE = 0.1
+
     patha = joint['edge_a']['d']
     pathb = joint['edge_b']['d']
     facea = joint['edge_a']['face']
     faceb = joint['edge_b']['face']
     lengtha = get_length(patha)
     lengthb = get_length(pathb)
-    boltsize = joint['joint_parameters']['boltsize']
-    boltspace = joint['joint_parameters']['boltspace']
-    boltnum = joint['joint_parameters']['boltnum']
-    boltlength = joint['joint_parameters']['boltlength']
     thickness = parameters['thickness']
 
-    cuta = f""
-    position = 0
-    cutb = f""
+    bolt_size = joint['joint_parameters']['boltsize']
+    bolt_space = joint['joint_parameters']['boltspace']
+    bolt_num = joint['joint_parameters']['boltnum']
+    bolt_length = joint['joint_parameters']['boltlength']
 
-    cuts[facea] = [place_new_edge_path(cuta, patha)]
-    cuts[faceb] = [place_new_edge_path(cutb, pathb)]
+    nut_width = NUT_BOLT_SIZES[bolt_size]['nut_width'] + CLEARANCE
+    nut_height = NUT_BOLT_SIZES[bolt_size]['nut_height'] + CLEARANCE
+    bolt_diameter = NUT_BOLT_SIZES[bolt_size]['bolt_diameter'] + CLEARANCE
+
+    segment_length = nut_width * 3
+    combined_length = bolt_num * segment_length + \
+        bolt_space * (bolt_num - 1)
+    buffer_size_a = (lengtha - combined_length) / 2
+    buffer_size_b = (lengthb - combined_length) / 2
+
+    X_0 = 0
+    X_1 = (nut_width - bolt_diameter) / 2
+    X_2 = (nut_width + bolt_diameter) / 2
+    X_3 = nut_width
+
+    Y_0 = 0
+    Y_1 = thickness
+    Y_2 = bolt_length - (2*nut_height)
+    Y_3 = bolt_length - nut_height
+    Y_4 = bolt_length
+
+    cuts[facea] = []
+    # cuta = f""
+    position = buffer_size_a
+    for _ in range(bolt_num):
+        cuta = f"M {position} {0} " + \
+            f"L {position} {thickness} " + \
+            f"L {position+nut_width} {thickness} " + \
+            f"L {position+nut_width} {0} " + \
+            f"L {position} {0} "
+        cuts[facea].append(place_new_edge_path(cuta, patha))
+        cuta = f"M {position+nut_width+X_1} {thickness/2} " + \
+            f"A {bolt_diameter/2} {bolt_diameter/2} 0 0 1 " + \
+            f"{position+nut_width+X_1 + bolt_diameter} {thickness/2} " + \
+            f"M {position+nut_width+X_1 + bolt_diameter} {thickness/2} " + \
+            f"A {bolt_diameter/2} {bolt_diameter/2} 0 0 1 " + \
+            f"{position+nut_width+X_1} {thickness/2} "
+        cuts[facea].append(place_new_edge_path(cuta, patha))
+        cuta = f"M {position+2*nut_width} {0} " + \
+            f"L {position+2*nut_width} {thickness} " + \
+            f"L {position+nut_width+2*nut_width} {thickness} " + \
+            f"L {position+nut_width+2*nut_width} {0} Z "
+        cuts[facea].append(place_new_edge_path(cuta, patha))
+        position = position + bolt_space + segment_length
+
+    # cuta += f"M {position} {0} " + \
+    #         f"L {position} {thickness} " + \
+    #         f"L {position+nut_width} {thickness} " + \
+    #         f"L {position+nut_width} {0} Z "
+    # print(cuta)
+    cuts[faceb] = []
+    # cuta = f""
+    cutb = f"M {0} {0} " + \
+        f"L {0} {thickness} " + \
+        f"L {buffer_size_b} {thickness} " + \
+        f"L {buffer_size_b} {0} Z "
+    cutb += f"M {lengthb} {0} " + \
+        f"L {lengthb} {thickness} " + \
+        f"L {lengthb - buffer_size_b} {thickness} " + \
+        f"L {lengthb - buffer_size_b} {0} Z "
+    cuts[faceb].append(place_new_edge_path(cutb, pathb))
+
+    position = buffer_size_b
+    for bolt in range(bolt_num):
+        cutb = f"M {position+nut_width} {0} " + \
+            f"L {position+nut_width} {thickness} " + \
+            f"L {position+nut_width*2} {thickness} " + \
+            f"L {position+nut_width*2} {0} Z "
+        cuts[faceb].append(place_new_edge_path(cutb, pathb))
+        if bolt < bolt_num:
+            cutb = f"M {position+segment_length} {0} " + \
+                f"L {position+segment_length} {thickness} " + \
+                f"L {position+segment_length+bolt_space} {thickness} " + \
+                f"L {position+segment_length+bolt_space} {0} Z "
+            cuts[faceb].append(place_new_edge_path(cutb, pathb))
+        position = position + bolt_space + segment_length
+
+    position = buffer_size_b
+    for bolt in range(bolt_num):
+        cutb = f"M {position+nut_width+X_1} {Y_0} " + \
+            f"L {position+nut_width+X_1} {Y_2} " + \
+            f"L {position+nut_width+X_0} {Y_2} " + \
+            f"L {position+nut_width+X_0} {Y_3} " + \
+            f"L {position+nut_width+X_1} {Y_3} " + \
+            f"L {position+nut_width+X_1} {Y_4} " + \
+            f"L {position+nut_width+X_2} {Y_4} " + \
+            f"L {position+nut_width+X_2} {Y_3} " + \
+            f"L {position+nut_width+X_3} {Y_3} " + \
+            f"L {position+nut_width+X_3} {Y_2} " + \
+            f"L {position+nut_width+X_2} {Y_2} " + \
+            f"L {position+nut_width+X_2} {Y_0} Z "
+        cuts[faceb].append(place_new_edge_path(cutb, pathb))
+        position = position + bolt_space + segment_length
+
+    # cutb = f"M {lengt} {0} L {0} {thickness} L {buffer_size_b} {thickness} L {buffer_size_b} {0} Z"
+
+    # cuts[facea] = [place_new_edge_path(cuta, patha)]
+    # cuts[faceb] = [place_new_edge_path(cutb, pathb)]
 
     return cuts
 

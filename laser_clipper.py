@@ -21,7 +21,6 @@ def merge_loops(loops):
 def get_difference(first, second):
     """Takes two list of loops (list of (x,y) points), and returns the difference"""
     second = merge_loops(second)
-    print(second)
     if second == []:
         return first
 
