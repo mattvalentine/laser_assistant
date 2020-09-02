@@ -33,7 +33,9 @@ def paths_to_loops(paths):
     """"Convert a list of paths to a list of points"""
     point_loop_list = []
     for path_string in paths:
-        point_loop_list.append(path_string_to_points(path_string))
+        points = path_string_to_points(path_string)
+        if points is not None:
+            point_loop_list.append(points)
     return point_loop_list
 
 
@@ -56,6 +58,10 @@ def combine_paths(paths, as_list=True):
 def path_string_to_points(path_string):
     """Convert path string into a list of points"""
     path = SVGPT.parse_path(path_string)
+
+    empty = SVGPT.Path()
+    if path == empty:
+        return None
     points = []
     for segment in path:
         segment_points = subpath_to_points(segment)
@@ -139,7 +145,13 @@ def points_to_path(points, closed=True):
 
 def move_path(path_string, xy_translation):
     """Takes a path string and xy_translation (x, y), and moves it x units over, and y units down"""
+
     path = SVGPT.parse_path(path_string)
+
+    empty = SVGPT.Path()
+    if path == empty:
+        return ""
+
     complex_translation = xy_to_complex(xy_translation)
     translated_path = path.translated(complex_translation)
     translated_string = translated_path.d()
@@ -157,6 +169,11 @@ def get_angle(path_string):
 def rotate_path(path_string, angle_degrees, xy_point):
     """rotates a path string a given number of degrees (CCW) around point (x, y)"""
     path = SVGPT.parse_path(path_string)
+
+    empty = SVGPT.Path()
+    if path == empty:
+        return ""
+
     complex_point = xy_to_complex(xy_point)
     rotated_path = path.rotated(angle_degrees, origin=complex_point)
     rotated_string = rotated_path.d()
