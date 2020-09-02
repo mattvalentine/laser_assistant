@@ -76,6 +76,10 @@ export default {
         tabsize: 10.0,
         tabspace: 20.0,
         tabnum: 2,
+        boltsize: "2.5M",
+        boltspace: 5.0,
+        boltnum: 1,
+        boltlength: 10.0,
       },
       // joint_index: 1,
     };
