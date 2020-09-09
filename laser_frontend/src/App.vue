@@ -89,8 +89,9 @@ export default {
       this.svgLoaded = true;
       let formData = new FormData();
       formData.append("svgInput", svgInput);
+
       axios
-        .post("http://127.0.0.1:5000/get_model", formData, {
+        .post("/get_model", formData, {
           headers: {
             "Content-Type": "multipart/form-data",
           },
@@ -105,7 +106,7 @@ export default {
       formData.append("inputModel", JSON.stringify(this.inputModel));
       formData.append("laserParams", JSON.stringify(this.laserParams));
       axios
-        .post("http://127.0.0.1:5000/get_design", formData, {
+        .post("/get_design", formData, {
           headers: {
             "Content-Type": "multipart/form-data",
           },
@@ -114,7 +115,7 @@ export default {
           this.designModel = response.data;
         });
       axios
-        .post("http://127.0.0.1:5000/get_output", formData, {
+        .post("/get_output", formData, {
           headers: {
             "Content-Type": "multipart/form-data",
           },
