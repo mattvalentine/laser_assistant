@@ -1,7 +1,7 @@
 <template>
   <div class="jointparams" :display="show">
     <div class="jointoptions">
-      Joint type
+      <span class="paramlabel">Joint type</span>
       <select name="jointtype" v-model="jp.joint_type">
         <option disabled value>Please select one</option>
         <option>Box</option>
@@ -10,22 +10,54 @@
         <option>Bolt</option>
         <!-- <option>C</option> -->
       </select>
-      Fit
-      <select name="fit" v-model="jp.fit">
+
+      <span class="paramlabel" v-show="jp.joint_type!=='Bolt'">Fit</span>
+      <select name="fit" v-model="jp.fit" v-show="jp.joint_type!=='Bolt'">
         <option disabled value>Please select one</option>
         <option>Clearance</option>
         <option>Friction</option>
         <option>Press</option>
         <!-- <option>C</option> -->
       </select>
-      Tab Size(mm)
-      <input name="tabsize" v-model="jp.tabsize" type="number" step="1.0" />
-      Tab Spacing(mm)
-      <input name="tabspace" v-model="jp.tabspace" type="number" step="1.0" />
-      Number of Tabs
-      <input name="tabnum" v-model="jp.tabnum" type="number" step="1" />
-      Bolt size
-      <select name="boltsize" v-model="jp.boltsize">
+
+      <span
+        class="paramlabel"
+        v-show="jp.joint_type==='Tab-and-Slot' || jp.joint_type==='Box'"
+      >Tab Size(mm)</span>
+      <input
+        name="tabsize"
+        v-model="jp.tabsize"
+        v-show="jp.joint_type==='Tab-and-Slot' || jp.joint_type==='Box'"
+        type="number"
+        step="1.0"
+      />
+
+      <span
+        class="paramlabel"
+        v-show="jp.joint_type==='Tab-and-Slot' || jp.joint_type==='Box'"
+      >Tab Spacing(mm)</span>
+      <input
+        name="tabspace"
+        v-model="jp.tabspace"
+        v-show="jp.joint_type==='Tab-and-Slot' || jp.joint_type==='Box'"
+        type="number"
+        step="1.0"
+      />
+
+      <span
+        class="paramlabel"
+        v-show="jp.joint_type==='Tab-and-Slot' || jp.joint_type==='Box'"
+      >Number of Tabs</span>
+      <input
+        name="tabnum"
+        v-model="jp.tabnum"
+        v-show="jp.joint_type==='Tab-and-Slot' || jp.joint_type==='Box'"
+        type="number"
+        step="1"
+      />
+
+      <span class="paramlabel" v-show="jp.joint_type==='Bolt'">Bolt size</span>
+      <select name="boltsize" v-model="jp.boltsize" v-show="jp.joint_type==='Bolt'">
         <option disabled value>Please select one</option>
         <option>M2</option>
         <option>M2.5</option>
@@ -33,19 +65,30 @@
         <option>M4</option>
         <!-- <option>C</option> -->
       </select>
-      Number of Bolts
-      <input name="boltnum" v-model="jp.boltnum" type="number" step="1" />
-      Space between Bolts
+
+      <span class="paramlabel" v-show="jp.joint_type==='Bolt'">Number of Bolts</span>
+      <input
+        name="boltnum"
+        v-model="jp.boltnum"
+        v-show="jp.joint_type==='Bolt'"
+        type="number"
+        step="1"
+      />
+
+      <span class="paramlabel" v-show="jp.joint_type==='Bolt'">Space between Bolts</span>
       <input
         name="boltspace"
         v-model="jp.boltspace"
+        v-show="jp.joint_type==='Bolt'"
         type="number"
         step="0.1"
       />
-      Bolt Length(mm)
+
+      <span class="paramlabel" v-show="jp.joint_type==='Bolt'">Bolt Length(mm)</span>
       <input
         name="boltlength"
         v-model="jp.boltlength"
+        v-show="jp.joint_type==='Bolt'"
         type="number"
         step="0.1"
       />
