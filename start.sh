@@ -1,7 +1,11 @@
 # #!/bin/bash
 
-# git clone https://github.com/mathandy/svgpathtools.git
-# python svgpathtools/setup.py install
+if [ ! -d "/svgpathtools" ] 
+then
+  git clone https://github.com/mathandy/svgpathtools.git
+  python svgpathtools/setup.py install
+fi
+
 
 python3 laser_flask.py
 
