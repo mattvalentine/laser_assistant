@@ -2,7 +2,7 @@
 
 import json
 
-# from flask_cors import CORS
+from flask_cors import CORS
 
 from flask import Flask, request, redirect, jsonify
 
@@ -18,7 +18,7 @@ app = Flask(__name__, static_folder=VUE_STATIC)  # pylint: disable=invalid-name
 # Allow VUE client to make requests to this API server
 VUE_CLIENT = {"origins": "*"}
 app.config['CORS_HEADERS'] = 'Content-Type'
-# cors = CORS(app, resources={r"*": VUE_CLIENT})  # pylint: disable=invalid-name
+cors = CORS(app, resources={r"*": VUE_CLIENT})  # pylint: disable=invalid-name
 
 
 @app.route('/')
