@@ -226,17 +226,17 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: 100vh;
+  /* height: 100vh; */
   width: 100vw;
   font-family: sans-serif;
 }
 
 .ui {
-  width: 100%;
+  /* width: 100%; */
   display: grid;
   grid-template: "svg panel" 1fr / 3fr 1fr;
   grid-column-gap: 1vw;
-  width: vmin;
+  /* width: vmin; */
 }
 
 .model {
