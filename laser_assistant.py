@@ -145,8 +145,8 @@ def process_joints(model, joints, parameters):
 def get_box_joint_cuts(joint, model, parameters):
     """generator for box joints"""
     cuts = {}
-    fits = {'Wood': {'Clearance': 0, 'Friction': 1, 'Press': 2},
-            'Acrylic': {'Clearance': 0, 'Friction': 0.1, 'Press': 0.2}}
+    fits = {'Wood': {'Clearance': -0.05, 'Friction': 0.05, 'Press': 0.1},
+            'Acrylic': {'Clearance': -0.1, 'Friction': 0.0, 'Press': 0.0}}
     patha = joint['edge_a']['d']
     pathb = joint['edge_b']['d']
     facea = joint['edge_a']['face']
@@ -261,8 +261,8 @@ def get_bolt_joint_adds(joint, model, parameters):
 def get_tabslot_joint_cuts(joint, model, parameters):
     """generator for tabslot joints"""
     cuts = {}
-    fits = {'Wood': {'Clearance': 0, 'Friction': 1, 'Press': 2},
-            'Acrylic': {'Clearance': 0, 'Friction': 0.1, 'Press': 0.2}}
+    fits = {'Wood': {'Clearance': -0.05, 'Friction': 0.05, 'Press': 0.1},
+            'Acrylic': {'Clearance': -0.1, 'Friction': 0.0, 'Press': 0.0}}
     patha = joint['edge_a']['d']
     pathb = joint['edge_b']['d']
     facea = joint['edge_a']['face']
