@@ -158,7 +158,7 @@ def get_box_joint_cuts(joint, model, parameters):
     tabnum = joint['joint_parameters']['tabnum']
     thickness = parameters['thickness']
     fit = fits[parameters['material']][joint['joint_parameters']['fit']]
-    print(fit+tabsize)
+
     sega = tabsize*tabnum + tabspace*(tabnum-1) - fit
     segb = tabsize*tabnum + tabspace*(tabnum-1) + fit
     offseta = (lengtha - sega) / 2.0
@@ -176,7 +176,6 @@ def get_box_joint_cuts(joint, model, parameters):
     cutb = f"M {0} {0} " + f"L {0} {thickness} " + \
            f"L {offsetb} {thickness} " + f"L {offsetb} {0} Z "
     position = offsetb
-    print(offsetb)
     step = tabsize + tabspace
     for _ in range(tabnum - 1):
         cutb += f"M {position+tabsize+fit} {0} " + f"L {position+tabsize+fit} {thickness} " + \
@@ -262,7 +261,7 @@ def get_bolt_joint_adds(joint, model, parameters):
 def get_tabslot_joint_cuts(joint, model, parameters):
     """generator for tabslot joints"""
     cuts = {}
-    fits = {'Wood': {'Clearance': -0.05, 'Friction': 0.05, 'Press': 0.1},
+    fits = {'Wood': {'Clearance': -0.05, 'Friction': 0.05, 'Press': 0.075},
             'Acrylic': {'Clearance': -0.1, 'Friction': 0.0, 'Press': 0.0}}
     patha = joint['edge_a']['d']
     pathb = joint['edge_b']['d']
@@ -273,34 +272,34 @@ def get_tabslot_joint_cuts(joint, model, parameters):
     tabsize = joint['joint_parameters']['tabsize']
     tabspace = joint['joint_parameters']['tabspace']
     tabnum = joint['joint_parameters']['tabnum']
-    thickness = parameters['thickness']
+    thickness = parameters['thickness'] - \
+        fits[parameters['material']]['Clearance']
     fit = fits[parameters['material']][joint['joint_parameters']['fit']]
-    offseta = (lengtha - (tabsize * tabnum) - (tabspace * (tabnum - 1))) / 2
-    offsetb = (lengthb - ((tabsize + fit) * tabnum) -
-               ((tabspace - fit) * (tabnum - 1))) / 2
+    sega = tabsize*tabnum + tabspace*(tabnum-1) - fit
+    segb = tabsize*tabnum + tabspace*(tabnum-1) + fit
+    offseta = (lengtha - sega) / 2.0
+    offsetb = (lengthb - segb) / 2.0
 
     cuta = f""
-    position = 0
-    step = offseta
+    position = offseta
     for _ in range(tabnum):
-        position = position + step
         cuta += f"M {position} {0} " + \
                 f"L {position} {thickness}" + \
-                f"L {position + tabsize} {thickness}" + \
-                f"L {position + tabsize} {0} Z "
-        step = tabsize + tabspace
+                f"L {position + tabsize - fit} {thickness}" + \
+                f"L {position + tabsize - fit} {0} Z "
+        position = position + tabsize+tabspace
 
     cutb = f"M {0} {0} " + f"L {0} {thickness} " + \
            f"L {offsetb} {thickness} " + f"L {offsetb} {0} Z "
     position = offsetb
     step = tabsize + tabspace
     for _ in range(tabnum - 1):
-        cutb += f"M {position+tabsize} {0} " + f"L {position+tabsize} {thickness} " + \
-                f"L {position+tabsize+fit+tabspace} {thickness} " + \
-                f"L {position+tabsize+fit+tabspace} {0} Z "
+        cutb += f"M {position+tabsize+fit} {0} " + f"L {position+tabsize+fit} {thickness} " + \
+                f"L {position+tabsize+tabspace} {thickness} " + \
+                f"L {position+tabsize+tabspace} {0} Z "
         position = position + step
     position = position + tabsize
-    cutb += f"M {position} {0} " + f"L {position} {thickness} " + \
+    cutb += f"M {position+fit} {0} " + f"L {position+fit} {thickness} " + \
             f"L {lengthb} {thickness} " + f"L {lengthb} {0} Z "
 
     cuts[facea] = [place_new_edge_path(cuta, patha)]
