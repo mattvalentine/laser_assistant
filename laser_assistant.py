@@ -600,22 +600,42 @@ def scale_tree(tree, scale):
     return new_tree
 
 
+def scale_joint_params(params, scale):
+    """modify scalable joint parameters"""
+    new_params = params
+    new_params['tabsize'] = params['tabsize'] * scale
+    new_params['tabspace'] = params['tabspace'] * scale
+    new_params['boltspace'] = params['boltspace'] * scale
+    return params
+
+
+def scale_joints(joints, scale):
+    """scale joints(edges and parameters) by scale factor (float)"""
+    scaled_joints = joints
+    for joint, specs in joints.items():
+        scaled_joints[joint]['edge_a']['d'] = scale_path(
+            specs['edge_a']['d'], scale)
+        scaled_joints[joint]['edge_b']['d'] = scale_path(
+            specs['edge_b']['d'], scale)
+        scaled_joints[joint]['joint_parameters'] = scale_joint_params(
+            specs['joint_parameters'], scale)
+    return scaled_joints
+
+
 def scale_design(design_model, scale):
     """scales design by factor(float)"""
     scaled_model = design_model
     # print(json.dumps(design_model, indent=1))
     scaled_model['attrib']['viewBox'] = scale_viewbox(
         design_model['attrib']['viewBox'], scale)
-    # TODO: scale tree
     scaled_model['tree'] = scale_tree(design_model['tree'], scale)
-    # TODO: scale joints
-    # TODO: scale edges? (Don't think we need this)
+    scaled_model['joints'] = scale_joints(design_model['joints'], scale)
     return scaled_model
 
 
 def process_web_outputsvg(design_model, parameters):
     """process joints and offset kerf"""
-    # scale
+    # scaling
     scaled_model = scale_design(design_model, parameters['scaleFactor'])
     # Processing:
     output_model = get_processed_model(scaled_model, parameters)
