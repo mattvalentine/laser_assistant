@@ -24,7 +24,6 @@ def tree_to_paths(tree):
     paths, _ = tempfile_to_paths(temp_svg)
     svg_paths = []
     for path in paths:
-        print(path)
         if not path:
             svg_paths.append(path.d())
     return svg_paths
