@@ -149,9 +149,6 @@ def scale_path(path_string, scale):
     path = SVGPT.parse_path(path_string)
     scaled_path = path.scaled(scale)
     new_path_string = scaled_path.d()
-    print(path_string)
-    print(scale)
-    print(new_path_string)
     return new_path_string
 
 
