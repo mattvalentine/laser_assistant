@@ -143,6 +143,18 @@ def points_to_path(points, closed=True):
     return data
 
 
+def scale_path(path_string, scale):
+    """scales a path string by a scale factor (float)"""
+    # new_path_string = path_string
+    path = SVGPT.parse_path(path_string)
+    scaled_path = path.scaled(scale)
+    new_path_string = scaled_path.d()
+    print(path_string)
+    print(scale)
+    print(new_path_string)
+    return new_path_string
+
+
 def move_path(path_string, xy_translation):
     """Takes a path string and xy_translation (x, y), and moves it x units over, and y units down"""
 

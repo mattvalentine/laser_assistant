@@ -4,7 +4,7 @@ import xml.etree.ElementTree as ET
 import json
 
 from laser_path_utils import (get_length, get_start, get_angle,
-                              move_path, rotate_path,
+                              move_path, rotate_path, scale_path,
                               get_overlapping, get_not_overlapping,
                               paths_to_loops, loops_to_paths,
                               separate_closed_paths, is_inside,
@@ -578,13 +578,11 @@ def get_inside_kerf(tree, parameters):
 
 def scale_viewbox(viewbox, scale):
     """scale viewbox(string of 4 numbers) by scale factor (float)"""
-    print("VB: ", viewbox, " Scale: ", scale)
     new_viewbox = ""
     for coord in viewbox.split():
         new_viewbox += f"{float(coord) * scale} "
     # print(viewbox.split())
     new_viewbox = new_viewbox.strip()
-    print(new_viewbox)
     return new_viewbox
 
 
