@@ -576,8 +576,35 @@ def get_inside_kerf(tree, parameters):
     return tree
 
 
+def scale_viewbox(viewbox, scale):
+    """scale viewbox(string of 4 numbers) by scale factor (float)"""
+    print("VB: ", viewbox, " Scale: ", scale)
+    new_viewbox = ""
+    for coord in viewbox.split():
+        new_viewbox += f"{float(coord) * scale} "
+    # print(viewbox.split())
+    new_viewbox = new_viewbox.strip()
+    print(new_viewbox)
+    return new_viewbox
+
+
+def scale_design(design_model, scale):
+    """scales design by factor(float)"""
+    scaled_model = design_model
+    print(json.dumps(design_model, indent=1))
+    # TODO: scale viewBox
+    scaled_model['attrib']['viewBox'] = scale_viewbox(
+        design_model['attrib']['viewBox'], scale)
+    # TODO: scale tree
+    # TODO: scale joints
+    # TODO: scale edges? (Don't think we need this)
+    return scaled_model
+
+
 def process_web_outputsvg(design_model, parameters):
     """process joints and offset kerf"""
+    # scale
+    scaled_model = scale_design(design_model, parameters['scaleFactor'])
     # Processing:
     output_model = get_processed_model(design_model, parameters)
     # Styling:
