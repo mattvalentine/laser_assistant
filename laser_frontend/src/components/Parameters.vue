@@ -1,6 +1,11 @@
 <template>
   <div class="params">
     <p>
+      Scale factor:
+      <br />
+      <input name="scale" v-model="newScaleFactor" type="number" step="0.1" @change="applyParams" />
+    </p>
+    <p>
       Thickness (mm):
       <br />
       <input name="thickness" v-model="newThickness" type="number" step="0.1" @change="applyParams" />
@@ -31,27 +36,31 @@
 
 export default {
   name: "Parameters",
-  props: ["thickness", "kerf", "material"],
+  props: ["thickness", "kerf", "material", "scaleFactor"],
   data: function () {
     return {
-      newThickness: 3.1,
-      newKerf: 0.27,
+      newThickness: 3.0,
+      newKerf: 0.05,
       newMaterial: "Wood",
+      newScaleFactor: 1.0,
     };
   },
   mounted() {
     this.newThickness = this.thickness;
     this.newKerf = this.kerf;
     this.newMaterial = this.material;
+    this.newScaleFactor = this.scaleFactor;
   },
   methods: {
     applyParams: function () {
       const floatThickness = parseFloat(this.newThickness);
       const floatKerf = parseFloat(this.newKerf);
+      const floatScaleFactor = parseFloat(this.newScaleFactor);
       this.$emit("update", {
         thickness: floatThickness,
         kerf: floatKerf,
         material: this.newMaterial,
+        scaleFactor: floatScaleFactor,
       });
       return;
     },

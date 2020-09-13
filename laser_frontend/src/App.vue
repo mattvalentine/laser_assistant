@@ -14,6 +14,7 @@
       :thickness="laserParams.thickness"
       :kerf="laserParams.kerf"
       :material="laserParams.material"
+      :scaleFactor="laserParams.scaleFactor"
       @download="downloadsvg"
     />
     <LoadSVG v-if="!svgLoaded" v-on:insvg="loadSVG" />
@@ -62,6 +63,7 @@ export default {
         thickness: 3.1,
         kerf: 0.27,
         material: "Wood",
+        scaleFactor: 1.0,
       },
       AB: true,
       active_joint_name: "Joint0",
@@ -91,7 +93,7 @@ export default {
       formData.append("svgInput", svgInput);
 
       axios
-        .post("/get_model", formData, {
+        .post("http://127.0.0.1:5000/get_model", formData, {
           headers: {
             "Content-Type": "multipart/form-data",
           },
@@ -106,7 +108,7 @@ export default {
       formData.append("inputModel", JSON.stringify(this.inputModel));
       formData.append("laserParams", JSON.stringify(this.laserParams));
       axios
-        .post("/get_design", formData, {
+        .post("http://127.0.0.1:5000/get_design", formData, {
           headers: {
             "Content-Type": "multipart/form-data",
           },
@@ -115,7 +117,7 @@ export default {
           this.designModel = response.data;
         });
       axios
-        .post("/get_output", formData, {
+        .post("http://127.0.0.1:5000/get_output", formData, {
           headers: {
             "Content-Type": "multipart/form-data",
           },
@@ -232,7 +234,7 @@ body {
 }
 
 .ui {
-  /* width: 100%; */
+  width: 100%;
   display: grid;
   grid-template: "svg panel" 1fr / 3fr 1fr;
   grid-column-gap: 1vw;
