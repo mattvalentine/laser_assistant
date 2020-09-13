@@ -6,8 +6,9 @@ from flask_cors import CORS
 
 from flask import Flask, request, redirect, jsonify
 
-from laser_assistant import (svg_to_model, model_to_svg_file,
+from laser_assistant import (svg_to_model,
                              get_original_model, process_web_outputsvg)
+from laser_svg_parser import model_to_svg_file
 
 # tell flask to host the front end
 VUE_STATIC = "./laser_frontend/dist/"

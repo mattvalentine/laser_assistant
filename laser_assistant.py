@@ -11,7 +11,7 @@ from laser_path_utils import (get_length, get_start, get_angle,
                               path_to_segments)
 from laser_clipper import get_difference, get_offset_loop, get_union
 import svgpathtools.svgpathtools as SVGPT
-from laser_svg_parser import separate_perims_from_cuts, parse_svgfile, model_to_svg_file
+from laser_svg_parser import separate_perims_from_cuts, parse_svgfile
 # from joint_generators import FlatJoint, BoxJoint, TslotJoint
 
 
@@ -126,14 +126,14 @@ def process_joints(model, joints, parameters):
     """takes in model of paces and returns modified model with joints applied"""
     # print(joints)
     # print(parameters)
-    for jointname, joint in joints.items():
+    for _, joint in joints.items():
         extensions = get_joint_adds(joint, model, parameters)
         # print(jointname, extensions)
         for face, extension in extensions.items():
             model['tree'][face]['paths'] = combine_geometry(
                 model['tree'][face]['paths'], extension)
 
-    for jointname, joint in joints.items():
+    for _, joint in joints.items():
         cuts = get_joint_cuts(joint, model, parameters)
         # print(jointname, cuts)
         for face, cut in cuts.items():
@@ -142,7 +142,7 @@ def process_joints(model, joints, parameters):
     return model
 
 
-def get_box_joint_cuts(joint, model, parameters):
+def get_box_joint_cuts(joint, _, parameters):
     """generator for box joints"""
     cuts = {}
     fits = {'Wood': {'Clearance': -0.05, 'Friction': 0.05, 'Press': 0.075},
@@ -192,7 +192,7 @@ def get_box_joint_cuts(joint, model, parameters):
     return cuts
 
 
-def get_interlock_joint_adds(joint, model, parameters):
+def get_interlock_joint_adds(joint, _, parameters):
     """generator for interlock joints"""
     adds = {}
     patha = joint['edge_a']['d']
@@ -214,15 +214,15 @@ def get_interlock_joint_adds(joint, model, parameters):
     return adds
 
 
-def get_tabslot_joint_adds(joint, model, parameters):
+def get_tabslot_joint_adds(joint, _, parameters):
     """generator for tabslot joints"""
     adds = {}
     patha = joint['edge_a']['d']
-    pathb = joint['edge_b']['d']
+    # pathb = joint['edge_b']['d']
     facea = joint['edge_a']['face']
-    faceb = joint['edge_b']['face']
+    # faceb = joint['edge_b']['face']
     lengtha = get_length(patha)
-    lengthb = get_length(pathb)
+    # lengthb = get_length(pathb)
     thickness = parameters['thickness']
 
     adda = f"M {0} {0} "+f"L {0} {-thickness} " + \
@@ -236,15 +236,15 @@ def get_tabslot_joint_adds(joint, model, parameters):
     return adds
 
 
-def get_bolt_joint_adds(joint, model, parameters):
+def get_bolt_joint_adds(joint, _, parameters):
     """generator for bolt joints"""
     adds = {}
     patha = joint['edge_a']['d']
-    pathb = joint['edge_b']['d']
+    # pathb = joint['edge_b']['d']
     facea = joint['edge_a']['face']
-    faceb = joint['edge_b']['face']
+    # faceb = joint['edge_b']['face']
     lengtha = get_length(patha)
-    lengthb = get_length(pathb)
+    # lengthb = get_length(pathb)
     thickness = parameters['thickness']
 
     adda = f"M {0} {0} "+f"L {0} {-thickness} " + \
@@ -258,7 +258,7 @@ def get_bolt_joint_adds(joint, model, parameters):
     return adds
 
 
-def get_tabslot_joint_cuts(joint, model, parameters):
+def get_tabslot_joint_cuts(joint, _, parameters):
     """generator for tabslot joints"""
     cuts = {}
     fits = {'Wood': {'Clearance': -0.05, 'Friction': 0.05, 'Press': 0.075},
@@ -308,11 +308,11 @@ def get_tabslot_joint_cuts(joint, model, parameters):
     return cuts
 
 
-def get_bolt_joint_cuts(joint, model, parameters):
+def get_bolt_joint_cuts(joint, _, parameters):
     """generator for bolt joints"""
     cuts = {}
 
-    NUT_BOLT_SIZES = {'M2': {'nut_width': 3.3,
+    nut_bolt_sizes = {'M2': {'nut_width': 3.3,
                              'nut_height': 2.0,
                              'bolt_diameter': 2},
                       'M2.5': {'nut_width': 4.3,
@@ -324,7 +324,7 @@ def get_bolt_joint_cuts(joint, model, parameters):
                       'M4': {'nut_width': 7.0,
                              'nut_height': 2.0,
                              'bolt_diameter': 4.0}}
-    CLEARANCE = 0.1
+    clearance = 0.1
 
     patha = joint['edge_a']['d']
     pathb = joint['edge_b']['d']
@@ -339,9 +339,9 @@ def get_bolt_joint_cuts(joint, model, parameters):
     bolt_num = joint['joint_parameters']['boltnum']
     bolt_length = joint['joint_parameters']['boltlength']
 
-    nut_width = NUT_BOLT_SIZES[bolt_size]['nut_width'] + CLEARANCE
-    nut_height = NUT_BOLT_SIZES[bolt_size]['nut_height'] + CLEARANCE
-    bolt_diameter = NUT_BOLT_SIZES[bolt_size]['bolt_diameter'] + CLEARANCE
+    nut_width = nut_bolt_sizes[bolt_size]['nut_width'] + clearance
+    nut_height = nut_bolt_sizes[bolt_size]['nut_height'] + clearance
+    bolt_diameter = nut_bolt_sizes[bolt_size]['bolt_diameter'] + clearance
 
     segment_length = nut_width * 3
     combined_length = bolt_num * segment_length + \
@@ -349,16 +349,16 @@ def get_bolt_joint_cuts(joint, model, parameters):
     buffer_size_a = (lengtha - combined_length) / 2
     buffer_size_b = (lengthb - combined_length) / 2
 
-    X_0 = 0
-    X_1 = (nut_width - bolt_diameter) / 2
-    X_2 = (nut_width + bolt_diameter) / 2
-    X_3 = nut_width
+    x_0 = 0
+    x_1 = (nut_width - bolt_diameter) / 2
+    x_2 = (nut_width + bolt_diameter) / 2
+    x_3 = nut_width
 
-    Y_0 = 0
-    Y_1 = thickness
-    Y_2 = bolt_length - (2*nut_height)
-    Y_3 = bolt_length - nut_height
-    Y_4 = bolt_length
+    y_0 = 0
+    # y_1 = thickness
+    y_2 = bolt_length - (2*nut_height)
+    y_3 = bolt_length - nut_height
+    y_4 = bolt_length
 
     cuts[facea] = []
     # cuta = f""
@@ -370,12 +370,12 @@ def get_bolt_joint_cuts(joint, model, parameters):
             f"L {position+nut_width} {0} " + \
             f"L {position} {0} "
         cuts[facea].append(place_new_edge_path(cuta, patha))
-        cuta = f"M {position+nut_width+X_1} {thickness/2} " + \
+        cuta = f"M {position+nut_width+x_1} {thickness/2} " + \
             f"A {bolt_diameter/2} {bolt_diameter/2} 0 0 1 " + \
-            f"{position+nut_width+X_1 + bolt_diameter} {thickness/2} " + \
-            f"M {position+nut_width+X_1 + bolt_diameter} {thickness/2} " + \
+            f"{position+nut_width+x_1 + bolt_diameter} {thickness/2} " + \
+            f"M {position+nut_width+x_1 + bolt_diameter} {thickness/2} " + \
             f"A {bolt_diameter/2} {bolt_diameter/2} 0 0 1 " + \
-            f"{position+nut_width+X_1} {thickness/2} "
+            f"{position+nut_width+x_1} {thickness/2} "
         cuts[facea].append(place_new_edge_path(cuta, patha))
         cuta = f"M {position+2*nut_width} {0} " + \
             f"L {position+2*nut_width} {thickness} " + \
@@ -418,22 +418,22 @@ def get_bolt_joint_cuts(joint, model, parameters):
 
     position = buffer_size_b
     for bolt in range(bolt_num):
-        cutb = f"M {position+nut_width+X_1} {Y_0} " + \
-            f"L {position+nut_width+X_1} {Y_2} " + \
-            f"L {position+nut_width+X_0} {Y_2} " + \
-            f"L {position+nut_width+X_0} {Y_3} " + \
-            f"L {position+nut_width+X_1} {Y_3} " + \
-            f"L {position+nut_width+X_1} {Y_4} " + \
-            f"L {position+nut_width+X_2} {Y_4} " + \
-            f"L {position+nut_width+X_2} {Y_3} " + \
-            f"L {position+nut_width+X_3} {Y_3} " + \
-            f"L {position+nut_width+X_3} {Y_2} " + \
-            f"L {position+nut_width+X_2} {Y_2} " + \
-            f"L {position+nut_width+X_2} {Y_0} Z "
+        cutb = f"M {position+nut_width+x_1} {y_0} " + \
+            f"L {position+nut_width+x_1} {y_2} " + \
+            f"L {position+nut_width+x_0} {y_2} " + \
+            f"L {position+nut_width+x_0} {y_3} " + \
+            f"L {position+nut_width+x_1} {y_3} " + \
+            f"L {position+nut_width+x_1} {y_4} " + \
+            f"L {position+nut_width+x_2} {y_4} " + \
+            f"L {position+nut_width+x_2} {y_3} " + \
+            f"L {position+nut_width+x_3} {y_3} " + \
+            f"L {position+nut_width+x_3} {y_2} " + \
+            f"L {position+nut_width+x_2} {y_2} " + \
+            f"L {position+nut_width+x_2} {y_0} Z "
         cuts[faceb].append(place_new_edge_path(cutb, pathb))
         position = position + bolt_space + segment_length
 
-    # cutb = f"M {lengt} {0} L {0} {thickness} L {buffer_size_b} {thickness} L {buffer_size_b} {0} Z"
+    #cutb = f"M {lengt} {0} L {0} {thickness} L {buffer_size_b} {thickness} L {buffer_size_b} {0} Z"
 
     # cuts[facea] = [place_new_edge_path(cuta, patha)]
     # cuts[faceb] = [place_new_edge_path(cutb, pathb)]
@@ -441,7 +441,7 @@ def get_bolt_joint_cuts(joint, model, parameters):
     return cuts
 
 
-def get_interlock_joint_cuts(joint, model, parameters):
+def get_interlock_joint_cuts(joint, _, parameters):
     """generator for interlock joints"""
     cuts = {}
     fits = {'Wood': {'Clearance': 0, 'Friction': 1, 'Press': 2},
@@ -588,11 +588,16 @@ def scale_viewbox(viewbox, scale):
     return new_viewbox
 
 
+def scale_tree(tree, scale):
+    """scale model"""
+    print(scale)
+    return tree
+
+
 def scale_design(design_model, scale):
     """scales design by factor(float)"""
     scaled_model = design_model
     print(json.dumps(design_model, indent=1))
-    # TODO: scale viewBox
     scaled_model['attrib']['viewBox'] = scale_viewbox(
         design_model['attrib']['viewBox'], scale)
     # TODO: scale tree
@@ -606,7 +611,7 @@ def process_web_outputsvg(design_model, parameters):
     # scale
     scaled_model = scale_design(design_model, parameters['scaleFactor'])
     # Processing:
-    output_model = get_processed_model(design_model, parameters)
+    output_model = get_processed_model(scaled_model, parameters)
     # Styling:
     output_model['attrib']['style'] = f"fill:none;stroke:#ff0000;stroke-linejoin:round;" + \
         f"stroke-width:0.1px;stroke-linecap:round;stroke-opacity:0.5"
