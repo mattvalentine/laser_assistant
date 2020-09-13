@@ -35,6 +35,8 @@ import Parameters from "./components/Parameters";
 import LoadSVG from "./components/LoadSVG";
 import JointParams from "./components/JointParams";
 const axios = require("axios").default;
+const apiserver = "/"; // deploy
+// const apiserver = "http://127.0.0.1:5000/"; // develope
 
 export default {
   name: "App",
@@ -83,7 +85,6 @@ export default {
         boltnum: 2,
         boltlength: 10.0,
       },
-      // joint_index: 1,
     };
   },
   methods: {
@@ -93,7 +94,7 @@ export default {
       formData.append("svgInput", svgInput);
 
       axios
-        .post("http://127.0.0.1:5000/get_model", formData, {
+        .post(apiserver + "get_model", formData, {
           headers: {
             "Content-Type": "multipart/form-data",
           },
@@ -108,7 +109,7 @@ export default {
       formData.append("inputModel", JSON.stringify(this.inputModel));
       formData.append("laserParams", JSON.stringify(this.laserParams));
       axios
-        .post("http://127.0.0.1:5000/get_design", formData, {
+        .post(apiserver + "get_design", formData, {
           headers: {
             "Content-Type": "multipart/form-data",
           },
@@ -117,7 +118,7 @@ export default {
           this.designModel = response.data;
         });
       axios
-        .post("http://127.0.0.1:5000/get_output", formData, {
+        .post(apiserver + "get_output", formData, {
           headers: {
             "Content-Type": "multipart/form-data",
           },
@@ -228,7 +229,6 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  /* height: 100vh; */
   width: 100vw;
   font-family: sans-serif;
 }
@@ -238,7 +238,6 @@ body {
   display: grid;
   grid-template: "svg panel" 1fr / 3fr 1fr;
   grid-column-gap: 1vw;
-  /* width: vmin; */
 }
 
 .model {
