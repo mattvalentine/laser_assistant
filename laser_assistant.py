@@ -588,17 +588,26 @@ def scale_viewbox(viewbox, scale):
 
 def scale_tree(tree, scale):
     """scale model"""
-    print(scale)
-    return tree
+    new_tree = tree
+    for face, shapes in tree.items():
+        if face.startswith('face'):
+            for layer, contents in shapes.items():
+                scaled_paths = []
+                for path in contents['paths']:
+                    scaled_path = scale_path(path, scale)
+                    scaled_paths.append(scaled_path)
+                new_tree[face][layer]['paths'] = scaled_paths
+    return new_tree
 
 
 def scale_design(design_model, scale):
     """scales design by factor(float)"""
     scaled_model = design_model
-    print(json.dumps(design_model, indent=1))
+    # print(json.dumps(design_model, indent=1))
     scaled_model['attrib']['viewBox'] = scale_viewbox(
         design_model['attrib']['viewBox'], scale)
     # TODO: scale tree
+    scaled_model['tree'] = scale_tree(design_model['tree'], scale)
     # TODO: scale joints
     # TODO: scale edges? (Don't think we need this)
     return scaled_model
