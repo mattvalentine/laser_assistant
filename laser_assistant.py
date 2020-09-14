@@ -124,18 +124,14 @@ def get_original_tree(model):
 
 def process_joints(model, joints, parameters):
     """takes in model of paces and returns modified model with joints applied"""
-    # print(joints)
-    # print(parameters)
     for _, joint in joints.items():
         extensions = get_joint_adds(joint, model, parameters)
-        # print(jointname, extensions)
         for face, extension in extensions.items():
             model['tree'][face]['paths'] = combine_geometry(
                 model['tree'][face]['paths'], extension)
 
     for _, joint in joints.items():
         cuts = get_joint_cuts(joint, model, parameters)
-        # print(jointname, cuts)
         for face, cut in cuts.items():
             model['tree'][face]['paths'] = subtract_geometry(
                 model['tree'][face]['paths'], cut)
@@ -157,6 +153,8 @@ def get_box_joint_cuts(joint, _, parameters):
     tabspace = joint['joint_parameters']['tabspace']
     tabnum = joint['joint_parameters']['tabnum']
     thickness = parameters['thickness']
+    alignment = joint['joint_parameters']['joint_align']
+
     fit = fits[parameters['material']][joint['joint_parameters']['fit']]
 
     sega = tabsize*tabnum + tabspace*(tabnum-1) - fit
@@ -186,6 +184,9 @@ def get_box_joint_cuts(joint, _, parameters):
     cutb += f"M {position+fit} {0} " + f"L {position+fit} {thickness} " + \
             f"L {lengthb} {thickness} " + f"L {lengthb} {0} Z "
 
+    cuta = align_joint(cuta, lengtha, thickness, alignment)
+    cutb = align_joint(cutb, lengthb, thickness, alignment)
+
     cuts[facea] = [place_new_edge_path(cuta, patha)]
     cuts[faceb] = [place_new_edge_path(cutb, pathb)]
 
@@ -202,11 +203,41 @@ def get_interlock_joint_adds(joint, _, parameters):
     lengtha = get_length(patha)
     lengthb = get_length(pathb)
     thickness = parameters['thickness']
+    alignment = joint['joint_parameters']['joint_align']
 
-    adda = f"M {0} {0} "+f"L {0} {-thickness} " + \
-        f"L {lengtha} {-thickness} "+f"L {lengtha} {0}"
-    addb = f"M {0} {0} "+f"L {0} {-thickness} " + \
-        f"L {lengthb} {-thickness} "+f"L {lengthb} {0}"
+    adda = f"M {0} {thickness} "+f"L {0} {-thickness} " + \
+        f"L {lengtha} {-thickness} "+f"L {lengtha} {thickness}"
+    addb = f"M {0} {thickness} "+f"L {0} {-thickness} " + \
+        f"L {lengthb} {-thickness} " + f"L {lengthb} {thickness}"
+
+    adda = align_joint(adda, lengtha, thickness, alignment)
+    addb = align_joint(addb, lengthb, thickness, alignment)
+
+    adds[facea] = [place_new_edge_path(adda, patha)]
+    adds[faceb] = [place_new_edge_path(addb, pathb)]
+
+    return adds
+
+
+def get_box_joint_adds(joint, _, parameters):
+    """generator for box joints"""
+    adds = {}
+    patha = joint['edge_a']['d']
+    pathb = joint['edge_b']['d']
+    facea = joint['edge_a']['face']
+    faceb = joint['edge_b']['face']
+    lengtha = get_length(patha)
+    lengthb = get_length(pathb)
+    thickness = parameters['thickness']
+    alignment = joint['joint_parameters']['joint_align']
+
+    adda = f"M {0} {0} "+f"L {0} {thickness} " + \
+        f"L {lengtha} {thickness} "+f"L {lengtha} {0}"
+    addb = f"M {0} {0} "+f"L {0} {thickness} " + \
+        f"L {lengthb} {thickness} " + f"L {lengthb} {0}"
+
+    adda = align_joint(adda, lengtha, thickness, alignment)
+    addb = align_joint(addb, lengthb, thickness, alignment)
 
     adds[facea] = [place_new_edge_path(adda, patha)]
     adds[faceb] = [place_new_edge_path(addb, pathb)]
@@ -218,20 +249,24 @@ def get_tabslot_joint_adds(joint, _, parameters):
     """generator for tabslot joints"""
     adds = {}
     patha = joint['edge_a']['d']
-    # pathb = joint['edge_b']['d']
+    pathb = joint['edge_b']['d']
     facea = joint['edge_a']['face']
-    # faceb = joint['edge_b']['face']
+    faceb = joint['edge_b']['face']
     lengtha = get_length(patha)
-    # lengthb = get_length(pathb)
+    lengthb = get_length(pathb)
     thickness = parameters['thickness']
+    alignment = joint['joint_parameters']['joint_align']
 
-    adda = f"M {0} {0} "+f"L {0} {-thickness} " + \
-        f"L {lengtha} {-thickness} "+f"L {lengtha} {0}"
-    # addb = f"M {0} {0} "+f"L {0} {-thickness} " + \
-    #     f"L {lengthb} {-thickness} "+f"L {lengthb} {0}"
+    adda = f"M {0} {thickness} "+f"L {0} {-thickness} " + \
+        f"L {lengtha} {-thickness} "+f"L {lengtha} {thickness}"
+    addb = f"M {0} {0} "+f"L {0} {thickness} " + \
+        f"L {lengthb} {thickness} " + f"L {lengthb} {0}"
+
+    adda = align_joint(adda, lengtha, thickness, alignment)
+    addb = align_joint(addb, lengthb, thickness, alignment)
 
     adds[facea] = [place_new_edge_path(adda, patha)]
-    # adds[faceb] = [place_new_edge_path(addb, pathb)]
+    adds[faceb] = [place_new_edge_path(addb, pathb)]
 
     return adds
 
@@ -240,20 +275,24 @@ def get_bolt_joint_adds(joint, _, parameters):
     """generator for bolt joints"""
     adds = {}
     patha = joint['edge_a']['d']
-    # pathb = joint['edge_b']['d']
+    pathb = joint['edge_b']['d']
     facea = joint['edge_a']['face']
-    # faceb = joint['edge_b']['face']
+    faceb = joint['edge_b']['face']
     lengtha = get_length(patha)
-    # lengthb = get_length(pathb)
+    lengthb = get_length(pathb)
     thickness = parameters['thickness']
+    alignment = joint['joint_parameters']['joint_align']
 
-    adda = f"M {0} {0} "+f"L {0} {-thickness} " + \
-        f"L {lengtha} {-thickness} "+f"L {lengtha} {0}"
-    # addb = f"M {0} {0} "+f"L {0} {-thickness} " + \
-    #     f"L {lengthb} {-thickness} "+f"L {lengthb} {0}"
+    adda = f"M {0} {thickness} "+f"L {0} {-thickness} " + \
+        f"L {lengtha} {-thickness} "+f"L {lengtha} {thickness}"
+    addb = f"M {0} {0} "+f"L {0} {thickness} " + \
+        f"L {lengthb} {thickness} "+f"L {lengthb} {0}"
+
+    adda = align_joint(adda, lengtha, thickness, alignment)
+    addb = align_joint(addb, lengthb, thickness, alignment)
 
     adds[facea] = [place_new_edge_path(adda, patha)]
-    # adds[faceb] = [place_new_edge_path(addb, pathb)]
+    adds[faceb] = [place_new_edge_path(addb, pathb)]
 
     return adds
 
@@ -275,6 +314,8 @@ def get_tabslot_joint_cuts(joint, _, parameters):
     thickness = parameters['thickness'] - \
         fits[parameters['material']]['Clearance']
     fit = fits[parameters['material']][joint['joint_parameters']['fit']]
+    alignment = joint['joint_parameters']['joint_align']
+
     sega = tabsize*tabnum + tabspace*(tabnum-1) - fit
     segb = tabsize*tabnum + tabspace*(tabnum-1) + fit
     offseta = (lengtha - sega) / 2.0
@@ -301,6 +342,9 @@ def get_tabslot_joint_cuts(joint, _, parameters):
     position = position + tabsize
     cutb += f"M {position+fit} {0} " + f"L {position+fit} {thickness} " + \
             f"L {lengthb} {thickness} " + f"L {lengthb} {0} Z "
+
+    cuta = align_joint(cuta, lengtha, thickness, alignment)
+    cutb = align_joint(cutb, lengthb, thickness, alignment)
 
     cuts[facea] = [place_new_edge_path(cuta, patha)]
     cuts[faceb] = [place_new_edge_path(cutb, pathb)]
@@ -333,6 +377,7 @@ def get_bolt_joint_cuts(joint, _, parameters):
     lengtha = get_length(patha)
     lengthb = get_length(pathb)
     thickness = parameters['thickness']
+    alignment = joint['joint_parameters']['joint_align']
 
     bolt_size = joint['joint_parameters']['boltsize']
     bolt_space = joint['joint_parameters']['boltspace']
@@ -369,6 +414,7 @@ def get_bolt_joint_cuts(joint, _, parameters):
             f"L {position+nut_width} {thickness} " + \
             f"L {position+nut_width} {0} " + \
             f"L {position} {0} "
+        cuta = align_joint(cuta, lengtha, thickness, alignment)
         cuts[facea].append(place_new_edge_path(cuta, patha))
         cuta = f"M {position+nut_width+x_1} {thickness/2} " + \
             f"A {bolt_diameter/2} {bolt_diameter/2} 0 0 1 " + \
@@ -376,11 +422,13 @@ def get_bolt_joint_cuts(joint, _, parameters):
             f"M {position+nut_width+x_1 + bolt_diameter} {thickness/2} " + \
             f"A {bolt_diameter/2} {bolt_diameter/2} 0 0 1 " + \
             f"{position+nut_width+x_1} {thickness/2} "
+        cuta = align_joint(cuta, lengtha, thickness, alignment)
         cuts[facea].append(place_new_edge_path(cuta, patha))
         cuta = f"M {position+2*nut_width} {0} " + \
             f"L {position+2*nut_width} {thickness} " + \
             f"L {position+nut_width+2*nut_width} {thickness} " + \
             f"L {position+nut_width+2*nut_width} {0} Z "
+        cuta = align_joint(cuta, lengtha, thickness, alignment)
         cuts[facea].append(place_new_edge_path(cuta, patha))
         position = position + bolt_space + segment_length
 
@@ -388,7 +436,6 @@ def get_bolt_joint_cuts(joint, _, parameters):
     #         f"L {position} {thickness} " + \
     #         f"L {position+nut_width} {thickness} " + \
     #         f"L {position+nut_width} {0} Z "
-    # print(cuta)
     cuts[faceb] = []
     # cuta = f""
     cutb = f"M {0} {0} " + \
@@ -399,6 +446,7 @@ def get_bolt_joint_cuts(joint, _, parameters):
         f"L {lengthb} {thickness} " + \
         f"L {lengthb - buffer_size_b} {thickness} " + \
         f"L {lengthb - buffer_size_b} {0} Z "
+    cutb = align_joint(cutb, lengthb, thickness, alignment)
     cuts[faceb].append(place_new_edge_path(cutb, pathb))
 
     position = buffer_size_b
@@ -407,12 +455,14 @@ def get_bolt_joint_cuts(joint, _, parameters):
             f"L {position+nut_width} {thickness} " + \
             f"L {position+nut_width*2} {thickness} " + \
             f"L {position+nut_width*2} {0} Z "
+        cutb = align_joint(cutb, lengthb, thickness, alignment)
         cuts[faceb].append(place_new_edge_path(cutb, pathb))
         if bolt < bolt_num:
             cutb = f"M {position+segment_length} {0} " + \
                 f"L {position+segment_length} {thickness} " + \
                 f"L {position+segment_length+bolt_space} {thickness} " + \
                 f"L {position+segment_length+bolt_space} {0} Z "
+            cutb = align_joint(cutb, lengthb, thickness, alignment)
             cuts[faceb].append(place_new_edge_path(cutb, pathb))
         position = position + bolt_space + segment_length
 
@@ -430,6 +480,7 @@ def get_bolt_joint_cuts(joint, _, parameters):
             f"L {position+nut_width+x_3} {y_2} " + \
             f"L {position+nut_width+x_2} {y_2} " + \
             f"L {position+nut_width+x_2} {y_0} Z "
+        cutb = align_joint(cutb, lengthb, thickness, alignment)
         cuts[faceb].append(place_new_edge_path(cutb, pathb))
         position = position + bolt_space + segment_length
 
@@ -455,7 +506,7 @@ def get_interlock_joint_cuts(joint, _, parameters):
     joint_length = min(lengtha, lengthb)
     cut_length = joint_length / 2
     thickness = parameters['thickness']
-
+    alignment = joint['joint_parameters']['joint_align']
     fit = fits[parameters['material']][joint['joint_parameters']['fit']]
 
     cuta = f""
@@ -469,6 +520,8 @@ def get_interlock_joint_cuts(joint, _, parameters):
            f"L {0} {thickness-fit}" + \
            f"L {cut_length} {thickness-fit}" + \
            f"L {cut_length} {0} Z "
+    cuta = align_joint(cuta, lengtha, thickness, alignment)
+    cutb = align_joint(cutb, lengthb, thickness, alignment)
 
     cuts[facea] = [place_new_edge_path(cuta, patha)]
     cuts[faceb] = [place_new_edge_path(cutb, pathb)]
@@ -479,7 +532,8 @@ def get_interlock_joint_cuts(joint, _, parameters):
 def get_joint_adds(joint, model, parameters):
     """process a single joint"""
     jointtype = joint['joint_parameters']['joint_type']
-    addfunc = {'Tab-and-Slot': get_tabslot_joint_adds,
+    addfunc = {'Box': get_box_joint_adds,
+               'Tab-and-Slot': get_tabslot_joint_adds,
                'Interlocking': get_interlock_joint_adds,
                'Bolt': get_bolt_joint_adds}
     adds = addfunc.get(jointtype, lambda j, m, c: {})(joint, model, parameters)
@@ -495,6 +549,17 @@ def get_joint_cuts(joint, model, parameters):
                'Bolt': get_bolt_joint_cuts}
     cuts = cutfunc.get(jointtype, lambda j, m, c: {})(joint, model, parameters)
     return cuts
+
+
+def align_joint(path, length, thickness, alignment):
+    """returns joint offset inside, middle, or balanced"""
+    new_path = path
+    alignment_path = {
+        'Inside': f"M {0} {0} L {length} {0}",
+        'Middle': f"M {0} {-thickness/2.0} L {length} {-thickness/2.0}",
+        'Outside': f"M {0} {-thickness} L {length} {-thickness}", }
+    new_path = place_new_edge_path(path, alignment_path[alignment])
+    return new_path
 
 
 def kerf_offset(model, parameters):
@@ -625,7 +690,6 @@ def scale_joints(joints, scale):
 def scale_design(design_model, scale):
     """scales design by factor(float)"""
     scaled_model = design_model
-    # print(json.dumps(design_model, indent=1))
     scaled_model['attrib']['viewBox'] = scale_viewbox(
         design_model['attrib']['viewBox'], scale)
     scaled_model['tree'] = scale_tree(design_model['tree'], scale)

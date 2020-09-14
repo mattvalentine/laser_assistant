@@ -8,7 +8,14 @@
         <option>Tab-and-Slot</option>
         <option>Interlocking</option>
         <option>Bolt</option>
-        <!-- <option>C</option> -->
+      </select>
+
+      <span class="paramlabel">Joint alignment</span>
+      <select name="jointalign" v-model="jp.joint_align">
+        <option disabled value>Please select one</option>
+        <option>Inside</option>
+        <option>Middle</option>
+        <option>Outside</option>
       </select>
 
       <span class="paramlabel" v-show="jp.joint_type!=='Bolt'">Fit</span>
@@ -17,7 +24,6 @@
         <option>Clearance</option>
         <option>Friction</option>
         <option>Press</option>
-        <!-- <option>C</option> -->
       </select>
 
       <span
@@ -63,7 +69,6 @@
         <option>M2.5</option>
         <option>M3</option>
         <option>M4</option>
-        <!-- <option>C</option> -->
       </select>
 
       <span class="paramlabel" v-show="jp.joint_type==='Bolt'">Number of Bolts</span>

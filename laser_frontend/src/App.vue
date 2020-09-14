@@ -36,7 +36,7 @@ import LoadSVG from "./components/LoadSVG";
 import JointParams from "./components/JointParams";
 const axios = require("axios").default;
 const apiserver = "/"; // deploy
-// const apiserver = "http://127.0.0.1:5000/"; // develope
+// const apiserver = "http://127.0.0.1:5000/"; // develop
 
 export default {
   name: "App",
@@ -76,6 +76,7 @@ export default {
       },
       setjp: {
         joint_type: "Box",
+        joint_align: "Inside",
         fit: "Clearance",
         tabsize: 10.0,
         tabspace: 20.0,
