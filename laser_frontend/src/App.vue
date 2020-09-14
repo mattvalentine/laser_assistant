@@ -138,8 +138,8 @@ export default {
       const joints = this.inputModel.joints;
       for (const joint in joints) {
         if (
-          joints[joint].edge_a.d === edge.d ||
-          joints[joint].edge_b.d === edge.d
+          joints[joint].edge_a.edge === edge.edge ||
+          joints[joint].edge_b.edge === edge.edge
         ) {
           return joint;
         }

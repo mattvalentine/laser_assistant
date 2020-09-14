@@ -39,15 +39,15 @@ export default {
     },
     getOtherEdge: function (edge) {
       const joints = Object.assign({}, this.joints);
-      const edge_path = edge.getAttribute("d");
+      const edge_id = edge.getAttribute("id");
       for (const joint in joints) {
-        if (joints[joint].edge_a.d === edge_path) {
+        if ("edge" + joints[joint].edge_a.edge === edge_id) {
           const otheredge = document.getElementById(
             "edge" + joints[joint].edge_b.edge
           );
           return otheredge;
         }
-        if (joints[joint].edge_b.d === edge_path) {
+        if ("edge" + joints[joint].edge_b.edge === edge_id) {
           const otheredge = document.getElementById(
             "edge" + joints[joint].edge_a.edge
           );
