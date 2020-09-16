@@ -141,7 +141,15 @@ def process_joints(model, joints, parameters):
 def get_box_joint_cuts(joint, _, parameters):
     """generator for box joints"""
     cuts = {}
-    fits = {'Wood': {'Clearance': -0.05, 'Friction': 0.05, 'Press': 0.075},
+    thickness = parameters['thickness']
+    if thickness > 4.5:
+        fits = {'Wood': {'Clearance': -0.05, 'Friction': 0.05, 'Press': 0.075},
+                'None': {'Clearance': 0.0, 'Friction': 0.0, 'Press': 0.0},
+                'Acrylic': {'Clearance': -0.1, 'Friction': 0.0, 'Press': 0.0}}
+    else:
+        fits = {
+            'Wood': {'Clearance': -0.05, 'Friction': 0.04, 'Press': 0.05},
+            'None': {'Clearance': 0.0, 'Friction': 0.0, 'Press': 0.0},
             'Acrylic': {'Clearance': -0.1, 'Friction': 0.0, 'Press': 0.0}}
     patha = joint['edge_a']['d']
     pathb = joint['edge_b']['d']
@@ -152,7 +160,7 @@ def get_box_joint_cuts(joint, _, parameters):
     tabsize = joint['joint_parameters']['tabsize']
     tabspace = joint['joint_parameters']['tabspace']
     tabnum = joint['joint_parameters']['tabnum']
-    thickness = parameters['thickness']
+    # thickness = parameters['thickness']
     alignment = joint['joint_parameters']['joint_align']
 
     fit = fits[parameters['material']][joint['joint_parameters']['fit']]
@@ -300,7 +308,15 @@ def get_bolt_joint_adds(joint, _, parameters):
 def get_tabslot_joint_cuts(joint, _, parameters):
     """generator for tabslot joints"""
     cuts = {}
-    fits = {'Wood': {'Clearance': -0.05, 'Friction': 0.05, 'Press': 0.075},
+    thickness = parameters['thickness']
+    if thickness > 4.5:
+        fits = {'Wood': {'Clearance': -0.05, 'Friction': 0.05, 'Press': 0.075},
+                'None': {'Clearance': 0.0, 'Friction': 0.0, 'Press': 0.0},
+                'Acrylic': {'Clearance': -0.1, 'Friction': 0.0, 'Press': 0.0}}
+    else:
+        fits = {
+            'Wood': {'Clearance': -0.05, 'Friction': 0.04, 'Press': 0.05},
+            'None': {'Clearance': 0.0, 'Friction': 0.0, 'Press': 0.0},
             'Acrylic': {'Clearance': -0.1, 'Friction': 0.0, 'Press': 0.0}}
     patha = joint['edge_a']['d']
     pathb = joint['edge_b']['d']
@@ -492,11 +508,19 @@ def get_bolt_joint_cuts(joint, _, parameters):
     return cuts
 
 
-def get_interlock_joint_cuts(joint, _, parameters):
-    """generator for interlock joints"""
+def get_divider_joint_cuts(joint, _, parameters):
+    """generator for divider joints"""
     cuts = {}
-    fits = {'Wood': {'Clearance': 0, 'Friction': 1, 'Press': 2},
-            'Acrylic': {'Clearance': 0, 'Friction': 0.1, 'Press': 0.2}}
+    thickness = parameters['thickness']
+    if thickness > 4.5:
+        fits = {'Wood': {'Clearance': -0.05, 'Friction': 0.05, 'Press': 0.075},
+                'None': {'Clearance': 0.0, 'Friction': 0.0, 'Press': 0.0},
+                'Acrylic': {'Clearance': -0.1, 'Friction': 0.0, 'Press': 0.0}}
+    else:
+        fits = {
+            'Wood': {'Clearance': -0.05, 'Friction': 0.04, 'Press': 0.05},
+            'None': {'Clearance': 0.0, 'Friction': 0.0, 'Press': 0.0},
+            'Acrylic': {'Clearance': -0.1, 'Friction': 0.0, 'Press': 0.0}}
     patha = joint['edge_a']['d']
     pathb = joint['edge_b']['d']
     facea = joint['edge_a']['face']
@@ -505,7 +529,52 @@ def get_interlock_joint_cuts(joint, _, parameters):
     lengthb = get_length(pathb)
     joint_length = min(lengtha, lengthb)
     cut_length = joint_length / 2
+    # thickness = parameters['thickness']
+    alignment = joint['joint_parameters']['joint_align']
+    fit = fits[parameters['material']][joint['joint_parameters']['fit']]
+
+    cuta = f""
+
+    cuta += f"M {0} {-(thickness-fit)} " + \
+            f"L {0} {thickness-fit}" + \
+            f"L {cut_length} {thickness-fit}" + \
+            f"L {cut_length} {-(thickness-fit)} Z "
+
+    cutb = f"M {0} {-(thickness-fit)/2} " + \
+           f"L {0} {(thickness-fit)/2}" + \
+           f"L {cut_length} {(thickness-fit)/2}" + \
+           f"L {cut_length} {-(thickness-fit)/2} Z "
+    # cuta = align_joint(cuta, lengtha, thickness, alignment)
+    # cutb = align_joint(cutb, lengthb, thickness, alignment)
+
+    cuts[facea] = [place_new_edge_path(cuta, patha)]
+    cuts[faceb] = [place_new_edge_path(cutb, pathb)]
+
+    return cuts
+
+
+def get_interlock_joint_cuts(joint, _, parameters):
+    """generator for interlock joints"""
+    cuts = {}
     thickness = parameters['thickness']
+    if thickness > 4.5:
+        fits = {'Wood': {'Clearance': -0.05, 'Friction': 0.05, 'Press': 0.075},
+                'None': {'Clearance': 0.0, 'Friction': 0.0, 'Press': 0.0},
+                'Acrylic': {'Clearance': -0.1, 'Friction': 0.0, 'Press': 0.0}}
+    else:
+        fits = {
+            'Wood': {'Clearance': -0.05, 'Friction': 0.04, 'Press': 0.05},
+            'None': {'Clearance': 0.0, 'Friction': 0.0, 'Press': 0.0},
+            'Acrylic': {'Clearance': -0.1, 'Friction': 0.0, 'Press': 0.0}}
+    patha = joint['edge_a']['d']
+    pathb = joint['edge_b']['d']
+    facea = joint['edge_a']['face']
+    faceb = joint['edge_b']['face']
+    lengtha = get_length(patha)
+    lengthb = get_length(pathb)
+    joint_length = min(lengtha, lengthb)
+    cut_length = joint_length / 2
+    # thickness = parameters['thickness']
     alignment = joint['joint_parameters']['joint_align']
     fit = fits[parameters['material']][joint['joint_parameters']['fit']]
 
@@ -540,13 +609,53 @@ def get_joint_adds(joint, model, parameters):
     return adds
 
 
+def get_flat_joint_cuts(joint, _, parameters):
+    """generator for flat joints"""
+    cuts = {}
+    cuts = {}
+    thickness = parameters['thickness']
+    if thickness > 4.5:
+        fits = {'Wood': {'Clearance': -0.05, 'Friction': 0.05, 'Press': 0.075},
+                'None': {'Clearance': 0.0, 'Friction': 0.0, 'Press': 0.0},
+                'Acrylic': {'Clearance': -0.1, 'Friction': 0.0, 'Press': 0.0}}
+    else:
+        fits = {
+            'Wood': {'Clearance': -0.05, 'Friction': 0.04, 'Press': 0.05},
+            'None': {'Clearance': 0.0, 'Friction': 0.0, 'Press': 0.0},
+            'Acrylic': {'Clearance': -0.1, 'Friction': 0.0, 'Press': 0.0}}
+    patha = joint['edge_a']['d']
+    # pathb = joint['edge_b']['d']
+    facea = joint['edge_a']['face']
+    # faceb = joint['edge_b']['face']
+    lengtha = get_length(patha)
+    # lengthb = get_length(pathb)
+    # thickness = parameters['thickness']
+    alignment = joint['joint_parameters']['joint_align']
+    fit = fits[parameters['material']]['Clearance']
+
+    # cuta = f""
+
+    cuta = f"M {0} {0} " + \
+           f"L {0} {thickness-fit}" + \
+           f"L {lengtha} {thickness-fit}" + \
+           f"L {lengtha} {0} Z "
+    cuta = align_joint(cuta, lengtha, thickness, alignment)
+    # cutb = align_joint(cutb, lengthb, thickness, alignment)
+
+    cuts[facea] = [place_new_edge_path(cuta, patha)]
+    # cuts[faceb] = [place_new_edge_path(cutb, pathb)]
+    return cuts
+
+
 def get_joint_cuts(joint, model, parameters):
     """process a single joint"""
     jointtype = joint['joint_parameters']['joint_type']
     cutfunc = {'Box': get_box_joint_cuts,
                'Tab-and-Slot': get_tabslot_joint_cuts,
                'Interlocking': get_interlock_joint_cuts,
-               'Bolt': get_bolt_joint_cuts}
+               'Bolt': get_bolt_joint_cuts,
+               'Divider': get_divider_joint_cuts,
+               'Flat': get_flat_joint_cuts}
     cuts = cutfunc.get(jointtype, lambda j, m, c: {})(joint, model, parameters)
     return cuts
 

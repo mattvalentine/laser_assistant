@@ -8,6 +8,8 @@
         <option>Tab-and-Slot</option>
         <option>Interlocking</option>
         <option>Bolt</option>
+        <option>Flat</option>
+        <option>Divider</option>
       </select>
 
       <span class="paramlabel">Joint alignment</span>
