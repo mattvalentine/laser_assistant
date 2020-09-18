@@ -635,14 +635,15 @@ def get_flat_joint_cuts(joint, _, parameters):
 
     # cuta = f""
 
-    cuta = f"M {0} {0} " + \
+    cuta = f"M {0} {-(thickness-fit)} " + \
            f"L {0} {thickness-fit}" + \
            f"L {lengtha} {thickness-fit}" + \
-           f"L {lengtha} {0} Z "
-    cuta = align_joint(cuta, lengtha, thickness, alignment)
+           f"L {lengtha} {-(thickness-fit)} Z "
+    # cuta = align_joint(cuta, lengtha, thickness, alignment)
     # cutb = align_joint(cutb, lengthb, thickness, alignment)
 
     cuts[facea] = [place_new_edge_path(cuta, patha)]
+    print(cuts[facea])
     # cuts[faceb] = [place_new_edge_path(cutb, pathb)]
     return cuts
 
